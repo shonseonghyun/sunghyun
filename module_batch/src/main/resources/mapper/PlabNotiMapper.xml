@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sunghyun.batch.infrastructure.mapper.PlabNotiMapper">
+    <select id="getPlabMatches" resultType="com.sunghyun.batch.dto.PlabMatchDto">
+        SELECT
+            match_no,
+            plab_match_no,
+            stadium_name,
+            stadium_no,
+            match_dt,
+            match_tm,
+            current_player_cnt,
+            sub_type
+        FROM plab_match
+        WHERE STR_TO_DATE(CONCAT(match_dt, match_tm), '%Y%m%d%H%i%s') >= NOW()
+        ORDER BY match_dt ASC, match_tm ASC
+    </select>
+
+    <select id="sync" resultType="com.sunghyun.batch.dto.PlabMatchDto">
+        UPDATE plab_match
+        SET
+            current_player_cnt = #{currentPlayerCnt},
+            stadium_name = #{stadiumName},
+            sub_type = #{subType, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
+        WHERE match_no = #{matchNo}
+    </select>
+
+    <select id="find" resultType="com.sunghyun.batch.dto.NotificationTargetDto">
+<!--        SELECT-->
+<!--            subscription_no,-->
+<!--            plab_match_no,-->
+<!--            member_no,-->
+<!--            email,-->
+<!--            target_player_cnt,-->
+<!--            sub_type,-->
+<!--            is_notified-->
+<!--        FROM match_subscription-->
+<!--        WHERE is_notified = false-->
+<!--        AND plab_match_no IN-->
+<!--        <foreach collection="matchNoList" item="id" open="(" separator="," close=")">-->
+<!--            #{id}-->
+<!--        </foreach>-->
+        SELECT
+        s.subscription_no,
+        s.plab_match_no,
+        s.email,
+        s.target_player_cnt,
+        s.sub_type as subType,
+        m.current_player_cnt as currentPlayerCnt, -- 매치의 현재 인원
+        m.sub_type as currentSubType        -- 매치의 현재 타입
+        FROM match_subscription s
+        JOIN plab_match m ON s.plab_match_no = m.plab_match_no
+        WHERE s.is_notified = false
+        AND s.plab_match_no IN
+        <foreach collection="matchNoList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <update id="update" parameterType="com.sunghyun.batch.dto.NotificationTargetDto">
+        UPDATE match_subscription
+        SET is_notified = true
+        WHERE subscription_no = #{subscriptionNo}
+    </update>
+</mapper>

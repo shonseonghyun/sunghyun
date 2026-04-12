@@ -1,0 +1,33 @@
+dependencies {
+    //Spring Batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+    //MyBatis
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+
+    //JDBC & Driver
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    //근데 common에서 안 쓰이는 패키지(GlobalExcpetion이 들어간 web 패키지)도 존재하기에 모듈을 나눠야 한다.
+    //일단은 나누지 않았기에 아래 두 의존성을 추가한다.
+    implementation project(':common')
+
+    //1. Spring Web 관련 예외 클래스 참조용
+    runtimeOnly 'org.springframework:spring-webmvc'
+    //2. Servlet 관련 클래스(ServletException 등) 참조용
+    runtimeOnly 'jakarta.servlet:jakarta.servlet-api'
+
+    // implementation 대신 api를 사용하면 이 모듈을 가져다 쓰는 곳에도 전파됩니다.
+    //추후 제거 대상
+//    implementation 'com.fasterxml.jackson.core:jackson-databind'
+//    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310' // 이 녀석이 범인이었죠!
+}
+
+bootJar{ enabled = true }
+jar{ enabled = false }
+

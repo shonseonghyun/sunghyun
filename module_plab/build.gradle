@@ -1,0 +1,26 @@
+dependencies {
+    //web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    //jpa
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    //validation
+    // api-utils 모듈에서 api로 의존
+//    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    //DB
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    testRuntimeOnly 'com.h2database:h2'
+
+    //===========test=============//
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'com.google.code.gson:gson:2.8.9'
+
+
+    //모듈 간 의존성
+    implementation project(':common')
+}
+
+bootJar{ enabled = true }
+jar{ enabled = false }

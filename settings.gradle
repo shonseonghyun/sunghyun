@@ -1,0 +1,13 @@
+rootProject.name = 'demo'
+//참고로 Gradle은 멀티 모듈 프로젝트 관리 시 해당 파일을 가장 먼저 읽는다.
+
+include 'module_security' //우리 프로젝트 구성원으로서 module_security 등록!!
+include 'module_visit'
+include 'module_policy'
+include 'module_member'
+include 'common'
+include 'module_plabNoti'
+include 'plab'
+include 'module_plab'
+include 'module_batch'
+

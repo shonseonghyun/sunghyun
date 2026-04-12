@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: batch
+
+  main:
+    web-application-type: none  # \uC6F9 \uC11C\uBC84\uB97C \uC2DC\uC791\uD558\uC9C0 \uC54A\uB3C4\uB85D \uC124\uC815
+
+  profiles:
+    include: feign,redis #coomon \uBAA8\uB4C8\uC5D0 \uC788\uB294 redis,feign \uAC19\uC774 \uC77D\uC5B4\uC634
+
+  datasource:
+    # MySQL
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/hospital_visit_service?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: root
+    password: 385tjdgus
+#    url: ${MYSQL_URL}
+#    username: ${MYSQL_USERNAME}
+#    password: ${MYSQL_PASSWORD}
+
+  batch:
+    job:
+      enabled: false # \uC11C\uBC84 \uAE30\uB3D9 \uC2DC \uBAA8\uB4E0 Job\uC774 \uC790\uB3D9 \uC2E4\uD589\uB418\uB294 \uAC83\uC744 \uBC29\uC9C0 (\uD2B9\uC815 Job\uB9CC \uC2E4\uD589\uD558\uAE30 \uC704\uD568)
+
+
+mybatis:
+  # XML \uD30C\uC77C\uB4E4\uC774 \uC704\uCE58\uD55C \uACBD\uB85C (resources \uD3F4\uB354 \uAE30\uC900)
+  mapper-locations: classpath:mapper/**/*.xml
+  # SQL \uC2E4\uD589 \uB85C\uADF8\uB97C \uCF58\uC194\uC5D0\uC11C \uBCF4\uACE0 \uC2F6\uB2E4\uBA74 \uCD94\uAC00 (\uAC15\uCD94!)
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true # DB\uC758 snake_case\uB97C DTO\uC758 camelCase\uB85C \uC790\uB3D9 \uB9E4\uD551
+
+
+
+
+
+
