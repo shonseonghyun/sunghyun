@@ -1,5 +1,6 @@
 package com.sunghyun.plab.subscription.application;
 
+import com.sunghyun.plab.subscription.adapter.out.persistence.MatchSubscriptionMapper;
 import com.sunghyun.plab.subscription.application.port.in.MatchSubscriptionUseCase;
 import com.sunghyun.plab.subscription.application.port.in.dto.MatchSubscriptionModReqDto;
 import com.sunghyun.plab.subscription.application.port.in.dto.MatchSubscriptionRegReqDto;
@@ -26,6 +27,7 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
     private final MatchSubscriptionDomainService matchSubscriptionDomainService;
     private final MatchSubscriptionRepository matchSubscriptionRepository;
     private final PlabMatchOutPort plabMatchOutPort;
+    private final MatchSubscriptionMapper mapper;
 
     public MatchSubscriptionRegResDto registerMatchSubscription(final MatchSubscriptionRegReqDto dto){
         /* 플랩 매치 등록 */
@@ -40,7 +42,7 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
 
         /* 구독 매치 등록 */
         //구독 매치 등록 검증
-        matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNo(dto.getMemberNo(), dto.getPlabMatchNo())
+        matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNoAndNotiType(dto.getMemberNo(), dto.getPlabMatchNo(), dto.getNotiType())
                 .ifPresent(m -> {
                     throw new ExistMatchSubscriptionException(ErrorCode.P01);
                 })
@@ -51,8 +53,8 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
                 dto.getPlabMatchNo(),
                 dto.getMemberNo(),
                 dto.getEmail(),
-                dto.getTargetPlayerCnt(),
-                dto.getSubType()
+                dto.getNotiType(),
+                dto.getValue()
         );
 
         //도메인 서비스 내에서 영속화되는 게 아닌 애플리케이션 레이어에서 해야 하지 않나? 얼추 맞는 말이다. 대신, 트랜잭션 분리 여부를 확인해야 한다.
@@ -71,13 +73,12 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
         MatchSubscription selectedMatchSubscription = matchSubscriptionRepository.getMatchSubscriptionBySubscriptionNo(subscriptionNo)
                 .orElseThrow(()->new NotExistMatchSubscriptionException(ErrorCode.P03))
                 ;
-        MatchSubscription modifyReqMatchSubscription = dto.toDomain();
+        MatchSubscription modifyReqMatchSubscription = dto.toDomain(selectedMatchSubscription.getNotiType());
 
         //업데이트 여부 플래그
-        boolean isUpdated = ApiUtils.merge(modifyReqMatchSubscription,selectedMatchSubscription);
+        boolean isUpdated = ApiUtils.merge(modifyReqMatchSubscription, selectedMatchSubscription);
         if(isUpdated){
             //새로 변경했으모로 새롭게 알림 받을 수 있드록 false 수정
-            selectedMatchSubscription.resetNotification();
             matchSubscriptionRepository.save(selectedMatchSubscription);
         }
 

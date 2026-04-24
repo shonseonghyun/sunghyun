@@ -1,4 +1,4 @@
-package com.sunghyun.exception;
+package com.sunghyun.web.exception;
 
 import com.sunghyun.web.ErrorCode;
 import lombok.AllArgsConstructor;

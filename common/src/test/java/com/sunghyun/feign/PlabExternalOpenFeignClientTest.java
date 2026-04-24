@@ -1,6 +1,6 @@
 package com.sunghyun.feign;
 
-import com.sunghyun.exception.ExternalResourceNotFoundException;
+import com.sunghyun.web.exception.ExternalResourceNotFoundException;
 import com.sunghyun.feign.dto.PlabMatchResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

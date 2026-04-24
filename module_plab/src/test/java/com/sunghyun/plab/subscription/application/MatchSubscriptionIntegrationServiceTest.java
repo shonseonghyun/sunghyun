@@ -5,6 +5,8 @@ import com.sunghyun.plab.subscription.application.port.out.dto.MatchSubscription
 import com.sunghyun.plab.subscription.application.port.out.external.PlabMatchOutPort;
 import com.sunghyun.plab.subscription.application.port.out.persistence.MatchSubscriptionRepository;
 import com.sunghyun.plab.subscription.domain.enums.ActiveSubType;
+import com.sunghyun.plab.subscription.domain.enums.NotiSetting;
+import com.sunghyun.plab.subscription.domain.enums.NotiType;
 import com.sunghyun.plab.subscription.domain.exception.ExistMatchSubscriptionException;
 import com.sunghyun.plab.subscription.domain.service.MatchSubscriptionDomainService;
 import org.junit.jupiter.api.AfterEach;
@@ -42,11 +44,17 @@ class MatchSubscriptionIntegrationServiceTest {
     private PlabMatchOutPort plabMatchOutPort;
 
     // 상수 필드 정리
-    private static final Long PLAB_MATCH_NO = 813471L;
+    // 상수 필드 정리
+    private static final Long PLAB_MATCH_NO = 815994L;
     private static final Long MEMBER_NO = 1L;
     private static final String EMAIL = "sunghyun7895@naver.com";
     private static final Integer TARGET_PLAYER_CNT = 6;
+    private static final Integer MOD_TARGET_PLAYER_CNT = 8;
     private static final ActiveSubType SUB_TYPE = ActiveSubType.MANAGER_SUB;
+    private static final ActiveSubType MOD_SUB_TYPE = ActiveSubType.ALL;
+    private static final String STADIUM_NAME = "스타디움명";
+    private static final NotiType NOTI_TYPE=NotiType.PLAYER_COUNT;
+    private static final NotiSetting NOTI_VALUE= NotiSetting.PLAYER_EIGHT;
 
     @AfterEach
     void clean(){
@@ -62,7 +70,7 @@ class MatchSubscriptionIntegrationServiceTest {
 
         doThrow(ExistMatchSubscriptionException.class)
                 .when(matchSubscriptionDomainService)
-                    .createMatchSubscription(anyLong(), anyLong(), anyString(), anyInt(), any());
+                    .createMatchSubscription(anyLong(), anyLong(), anyString(), any(), any());
 
 
         //when,then
@@ -70,7 +78,7 @@ class MatchSubscriptionIntegrationServiceTest {
                 .isInstanceOf(ExistMatchSubscriptionException.class);
         assertThat(plabMatchOutPort.getPlabMatchByPlabMatchNo(PLAB_MATCH_NO))
                 .isNotNull();
-        assertThat(matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNo(MEMBER_NO,PLAB_MATCH_NO))
+        assertThat(matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNoAndNotiType(MEMBER_NO,PLAB_MATCH_NO,NOTI_TYPE))
                 .isEmpty();
     }
 
@@ -88,7 +96,7 @@ class MatchSubscriptionIntegrationServiceTest {
         //when,then
         assertThatThrownBy(()->matchSubscriptionService.registerMatchSubscription(dto))
                 .isInstanceOf(RuntimeException.class);
-        assertThat(matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNo(MEMBER_NO,PLAB_MATCH_NO))
+        assertThat(matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNoAndNotiType(MEMBER_NO,PLAB_MATCH_NO,NOTI_TYPE))
                 .isEmpty();
     }
 
@@ -102,7 +110,7 @@ class MatchSubscriptionIntegrationServiceTest {
         MatchSubscriptionRegResDto result = matchSubscriptionService.registerMatchSubscription(dto);
 
         //then
-        assertThat(matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNo(MEMBER_NO,PLAB_MATCH_NO))
+        assertThat(matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNoAndNotiType(MEMBER_NO,PLAB_MATCH_NO,NOTI_TYPE))
                 .isPresent();
         assertThat(plabMatchOutPort.getPlabMatchByPlabMatchNo(PLAB_MATCH_NO))
                 .isNotNull();
@@ -128,8 +136,8 @@ class MatchSubscriptionIntegrationServiceTest {
                             .plabMatchNo(PLAB_MATCH_NO)
                             .memberNo(memberNo)
                             .email("test" + memberNo + "@test.com")
-                            .targetPlayerCnt(TARGET_PLAYER_CNT)
-                            .subType(SUB_TYPE)
+                            .notiType(NOTI_TYPE)
+                            .value(NOTI_VALUE)
                             .build();
 
                     matchSubscriptionService.registerMatchSubscription(dto);
@@ -159,8 +167,8 @@ class MatchSubscriptionIntegrationServiceTest {
                 .plabMatchNo(PLAB_MATCH_NO)
                 .memberNo(MEMBER_NO)
                 .email(EMAIL)
-                .targetPlayerCnt(TARGET_PLAYER_CNT)
-                .subType(SUB_TYPE)
+                .notiType(NOTI_TYPE)
+                .value(NOTI_VALUE)
                 .build();
     }
 }

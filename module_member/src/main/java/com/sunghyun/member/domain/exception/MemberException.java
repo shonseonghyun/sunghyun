@@ -1,7 +1,7 @@
 package com.sunghyun.member.domain.exception;
 
 
-import com.sunghyun.exception.BaseException;
+import com.sunghyun.web.exception.BaseException;
 import com.sunghyun.web.ErrorCode;
 import lombok.Getter;
 

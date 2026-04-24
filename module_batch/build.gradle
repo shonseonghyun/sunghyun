@@ -16,6 +16,7 @@ dependencies {
     //근데 common에서 안 쓰이는 패키지(GlobalExcpetion이 들어간 web 패키지)도 존재하기에 모듈을 나눠야 한다.
     //일단은 나누지 않았기에 아래 두 의존성을 추가한다.
     implementation project(':common')
+//    implementation project(':module_plab') //배치가 무거워진다...ㅠㅠㅠ
 
     //1. Spring Web 관련 예외 클래스 참조용
     runtimeOnly 'org.springframework:spring-webmvc'

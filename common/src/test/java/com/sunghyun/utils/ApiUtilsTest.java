@@ -1,7 +1,7 @@
 package com.sunghyun.utils;
 
 import com.sunghyun.annotation.UpdateAble;
-import com.sunghyun.exception.MergeException;
+import com.sunghyun.web.exception.MergeException;
 import com.sunghyun.web.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

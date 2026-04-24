@@ -6,8 +6,6 @@ include 'module_visit'
 include 'module_policy'
 include 'module_member'
 include 'common'
-include 'module_plabNoti'
-include 'plab'
 include 'module_plab'
 include 'module_batch'
 

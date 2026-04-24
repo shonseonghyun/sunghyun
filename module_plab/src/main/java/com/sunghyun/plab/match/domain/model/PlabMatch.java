@@ -45,6 +45,7 @@ public class PlabMatch {
     private Integer currentPlayerCnt;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private ActiveSubType subType;
 
     public static PlabMatch create(

@@ -22,46 +22,53 @@
         UPDATE plab_match
         SET
             current_player_cnt = #{currentPlayerCnt},
-            stadium_name = #{stadiumName},
             sub_type = #{subType, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
         WHERE match_no = #{matchNo}
     </select>
 
-    <select id="find" resultType="com.sunghyun.batch.dto.NotificationTargetDto">
-<!--        SELECT-->
-<!--            subscription_no,-->
-<!--            plab_match_no,-->
-<!--            member_no,-->
-<!--            email,-->
-<!--            target_player_cnt,-->
-<!--            sub_type,-->
-<!--            is_notified-->
-<!--        FROM match_subscription-->
-<!--        WHERE is_notified = false-->
-<!--        AND plab_match_no IN-->
-<!--        <foreach collection="matchNoList" item="id" open="(" separator="," close=")">-->
-<!--            #{id}-->
-<!--        </foreach>-->
+    <select id="findNotificationTargets" resultType="com.sunghyun.batch.dto.NotificationTargetDto">
         SELECT
         s.subscription_no,
-        s.plab_match_no,
+        m.plab_match_no,
+        s.member_no,
         s.email,
-        s.target_player_cnt,
-        s.sub_type as subType,
-        m.current_player_cnt as currentPlayerCnt, -- 매치의 현재 인원
-        m.sub_type as currentSubType        -- 매치의 현재 타입
+
+        m.stadium_name,
+        m.match_dt,
+        m.match_tm,
+
+        s.noti_type,
+        s.noti_value,
+        m.current_player_cnt,
+        m.sub_type as currentSubType
         FROM match_subscription s
         JOIN plab_match m ON s.plab_match_no = m.plab_match_no
-        WHERE s.is_notified = false
-        AND s.plab_match_no IN
-        <foreach collection="matchNoList" item="id" open="(" separator="," close=")">
-            #{id}
+        WHERE
+        <foreach collection="updatedMatchList" item="e" separator="OR">
+            (
+                s.plab_match_no = #{e.plabMatchNo}
+                AND s.noti_type = #{e.notiType}
+            )
         </foreach>
     </select>
 
-    <update id="update" parameterType="com.sunghyun.batch.dto.NotificationTargetDto">
-        UPDATE match_subscription
-        SET is_notified = true
-        WHERE subscription_no = #{subscriptionNo}
-    </update>
+    <insert id="insertNotiHistory" parameterType="com.sunghyun.batch.dto.NotiHistoryDto">
+        INSERT INTO noti_history (
+            subscription_no,
+            member_no,
+            email,
+            noti_type,
+            noti_setting,
+            send_dt,
+            send_tm
+        ) VALUES (
+            #{subscriptionNo},
+            #{memberNo},
+            #{email},
+            #{notiType},
+            #{notiValue},
+            #{sendDt},
+            #{sendTm}
+        )
+    </insert>
 </mapper>

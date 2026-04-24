@@ -6,7 +6,7 @@ spring:
     web-application-type: none  # \uC6F9 \uC11C\uBC84\uB97C \uC2DC\uC791\uD558\uC9C0 \uC54A\uB3C4\uB85D \uC124\uC815
 
   profiles:
-    include: feign,redis #coomon \uBAA8\uB4C8\uC5D0 \uC788\uB294 redis,feign \uAC19\uC774 \uC77D\uC5B4\uC634
+    include: feign,redis,mail #coomon \uBAA8\uB4C8\uC5D0 \uC788\uB294 redis,feign \uAC19\uC774 \uC77D\uC5B4\uC634
 
   datasource:
     # MySQL

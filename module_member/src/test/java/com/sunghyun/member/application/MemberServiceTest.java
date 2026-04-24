@@ -1,6 +1,5 @@
 package com.sunghyun.member.application;
 
-import com.sunghyun.exception.MergeException;
 import com.sunghyun.member.application.dto.req.MemberModifyReqDto;
 import com.sunghyun.member.application.dto.req.MemberRegisterReqDto;
 import com.sunghyun.member.application.dto.res.MemberResDto;
@@ -12,7 +11,6 @@ import com.sunghyun.member.domain.handler.MemberIdPendingHandler;
 import com.sunghyun.member.domain.model.Member;
 import com.sunghyun.member.domain.repository.MemberRepository;
 import com.sunghyun.member.domain.service.PasswordService;
-import com.sunghyun.utils.ApiUtils;
 import com.sunghyun.web.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;

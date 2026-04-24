@@ -1,5 +1,6 @@
 package com.sunghyun.batch.infrastructure.mapper;
 
+import com.sunghyun.batch.dto.NotiHistoryDto;
 import com.sunghyun.batch.dto.NotificationTargetDto;
 import com.sunghyun.batch.dto.PlabMatchDto;
 import org.apache.ibatis.annotations.Mapper;
@@ -13,6 +14,8 @@ public interface PlabNotiMapper {
     void sync(final Long matchNo);
 
     //MatchSubscription
-    List<NotificationTargetDto> find();
-    void update(final Long subscriptionNo);
+    List<NotificationTargetDto> findNotificationTargets();
+
+    //NotiHistory
+    void insertNotiHistory(final NotiHistoryDto notiHistoryDto);
 }

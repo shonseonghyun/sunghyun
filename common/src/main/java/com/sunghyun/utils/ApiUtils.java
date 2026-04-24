@@ -2,11 +2,12 @@ package com.sunghyun.utils;
 
 
 import com.sunghyun.annotation.UpdateAble;
-import com.sunghyun.exception.MergeException;
+import com.sunghyun.web.exception.MergeException;
 import com.sunghyun.web.ErrorCode;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -135,6 +136,22 @@ public class ApiUtils {
         if (schedule == null || schedule.isBlank()) return "";
         return OffsetDateTime.parse(schedule)
                 .format(DateTimeFormatter.ofPattern("HHmmss"));
+    }
+
+    /**
+     * 현재 날짜를 yyyyMMdd 형식으로 반환
+     * 예: 20260423
+     */
+    public static String getCurrentDt() {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    /**
+     * 현재 시간을 HHmmss 형식으로 반환
+     * 예: 200151
+     */
+    public static String getCurrentTm() {
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmss"));
     }
 
     /**

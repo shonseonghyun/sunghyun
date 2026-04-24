@@ -1,6 +1,6 @@
 package com.sunghyun.feign;
 
-import com.sunghyun.exception.ExternalResourceNotFoundException;
+import com.sunghyun.web.exception.ExternalResourceNotFoundException;
 import com.sunghyun.web.ErrorCode;
 import feign.Response;
 import feign.codec.ErrorDecoder;

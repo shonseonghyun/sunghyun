@@ -1,6 +1,7 @@
 package com.sunghyun.plab.subscription.domain.service;
 
-import com.sunghyun.plab.subscription.domain.enums.ActiveSubType;
+import com.sunghyun.plab.subscription.domain.enums.NotiSetting;
+import com.sunghyun.plab.subscription.domain.enums.NotiType;
 import com.sunghyun.plab.subscription.domain.model.MatchSubscription;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,8 @@ public class MatchSubscriptionDomainService {
             final Long plabMatchNo,
             final Long memberNo,
             final String email,
-            final Integer targetPlayerCnt,
-            final ActiveSubType subType
+            final NotiType notiType,
+            final NotiSetting notiValue
     )
     {
         //구독 매치 등록 검증
@@ -33,11 +34,12 @@ public class MatchSubscriptionDomainService {
                 plabMatchNo,
                 memberNo,
                 email,
-                targetPlayerCnt,
-                subType
+                notiType,
+                notiValue
         );
+
         return matchSubscription;
 
-//        return matchSubscriptionRepository.save(matchSubscription);
+//        return matchSubscriptionRepository.save(matchSubscriptionEntity);
     }
 }

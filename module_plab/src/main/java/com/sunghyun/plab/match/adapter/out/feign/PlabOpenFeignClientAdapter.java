@@ -1,6 +1,6 @@
 package com.sunghyun.plab.match.adapter.out.feign;
 
-import com.sunghyun.exception.ExternalResourceNotFoundException;
+import com.sunghyun.web.exception.ExternalResourceNotFoundException;
 import com.sunghyun.feign.PlabExternalOpenFeignClient;
 import com.sunghyun.feign.dto.PlabMatchResponseDto;
 import com.sunghyun.plab.match.application.port.out.feign.PlabOpenFeignClient;

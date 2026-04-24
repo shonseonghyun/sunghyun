@@ -1,7 +1,9 @@
 package com.sunghyun.plab.subscription.application.port.in.dto;
 
 import com.sunghyun.annotation.NotNullWithMsg;
-import com.sunghyun.plab.subscription.domain.enums.ActiveSubType;
+import com.sunghyun.plab.subscription.domain.enums.NotiSetting;
+import com.sunghyun.plab.subscription.domain.enums.NotiType;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,9 +22,17 @@ public class MatchSubscriptionRegReqDto {
     @NotNullWithMsg
     private Long plabMatchNo;       // 플랩 매치 번호
 
-    private Integer targetPlayerCnt; // 목표 인원 수
+    private NotiType notiType;
 
-    private ActiveSubType subType;   // 서브 타입 (NONE, SUPER, MANAGER, ALL)
+    private NotiSetting value;
+
+    @AssertTrue(message = "선택한 알림 타입과 설정값이 일치하지 않습니다.")
+    public boolean isValidSetting(){
+        if(notiType == null || value == null){
+            return false;
+        }
+        return value.getNotiType().equals(notiType);
+    }
 
     /**
      * 정적 팩토리 메서드 (선택 사항: DTO 생성을 좀 더 명확하게 하고 싶을 때)

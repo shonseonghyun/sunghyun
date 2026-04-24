@@ -5,7 +5,7 @@ spring:
     port: 8081
 
   profiles:
-    include: feign,redis #coomon 모듈에 있는 redis,feign 같이 읽어옴
+    include: feign,redis,mail #coomon 모듈에 있는 redis,feign 같이 읽어옴
 
   datasource:
     # MySQL
@@ -26,5 +26,6 @@ spring:
         database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       #      ddl-auto: create-drop #애플리케이션 시작 시 기존 스키마 삭제 후 생성,애플리케이션 종료 시 스키마 삭제
-      ddl-auto: create # 애플리케이션 시작 시 기존 스키마 삭제 후 생성, 애플리케이션 종료 시 스키마 삭제 X(데이터 남아있음)
+#      ddl-auto: create # 애플리케이션 시작 시 기존 스키마 삭제 후 생성, 애플리케이션 종료 시 스키마 삭제 X(데이터 남아있음)
+      ddl-auto: none # 애플리케이션 시작 시 기존 스키마 삭제 후 생성, 애플리케이션 종료 시 스키마 삭제 X(데이터 남아있음)
       database-platform: org.hibernate.dialect.MySQL8Dialect

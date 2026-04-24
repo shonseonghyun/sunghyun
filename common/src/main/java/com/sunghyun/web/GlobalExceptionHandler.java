@@ -1,7 +1,6 @@
 package com.sunghyun.web;
 
-import com.sunghyun.exception.BaseException;
-import feign.FeignException;
+import com.sunghyun.web.exception.BaseException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;

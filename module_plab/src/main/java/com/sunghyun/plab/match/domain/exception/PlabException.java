@@ -1,6 +1,6 @@
 package com.sunghyun.plab.match.domain.exception;
 
-import com.sunghyun.exception.BaseException;
+import com.sunghyun.web.exception.BaseException;
 import com.sunghyun.web.ErrorCode;
 
 public class PlabException extends BaseException {
