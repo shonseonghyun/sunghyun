@@ -3,6 +3,7 @@ package com.sunghyun.batch.job.plabnoti.step2;
 import com.sunghyun.batch.dto.MatchUpdateEvent;
 import com.sunghyun.batch.dto.NotiHistoryDto;
 import com.sunghyun.batch.dto.NotificationTargetDto;
+import com.sunghyun.batch.job.plabnoti.step2.listener.TimeCheckListener;
 import com.sunghyun.mail.MailService;
 import com.sunghyun.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +34,7 @@ public class PlabMatchNotificationStepConfig {
     private final static int chunkSize = 10;
     private final SqlSessionFactory sqlSessionFactory;
     private final MailService mailService;
+    private final TimeCheckListener timeCheckListener;
 
     @Bean
     public Step plabMatchNotificationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
@@ -42,6 +43,7 @@ public class PlabMatchNotificationStepConfig {
                 .reader(plabMatchNotificationReader(null))
                 .processor(plabMatchNotificationProcessor())
                 .writer(plabMatchNotificationWriter())
+                .listener(timeCheckListener)
                 .build();
     }
 

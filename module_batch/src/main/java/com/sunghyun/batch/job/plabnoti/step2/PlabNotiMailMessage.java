@@ -19,9 +19,8 @@ public enum PlabNotiMailMessage implements MailMessage<NotificationTargetDto> {
             String matchUrl = "https://www.plabfootball.com/match/" + item.getPlabMatchNo() + "/";
             String msgg = "";
             msgg += "<div style='margin:20px; font-family: sans-serif;'>";
-            msgg += "    <h2 style='color: #2c3e50;'>[인원 충족 알림]</h2>";
-            msgg += "    <br>";
             msgg += "    <div style='background-color: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6;'>";
+            msgg += "       <h2 style='color: #2c3e50; margin-top: 0;'>[인원 충족 알림]</h2>";
             msgg += "        <p>설정하신 매치의 인원 조건이 충족되었습니다.</p>";
             msgg += "        <hr style='border: 0; border-top: 1px solid #eee;'>";
             msgg += "        <p><b>📍 경기장:</b> " + item.getStadiumName() + "</p>";
@@ -50,9 +49,8 @@ public enum PlabNotiMailMessage implements MailMessage<NotificationTargetDto> {
             String matchUrl = "https://www.plabfootball.com/match/" + item.getPlabMatchNo() + "/";
             String msgg = "";
             msgg += "<div style='margin:20px; font-family: sans-serif;'>";
-            msgg += "    <h2 style='color: #2c3e50;'>[서브 활성화 알림]</h2>";
-            msgg += "    <br>";
             msgg += "    <div style='background-color: #f0f7ff; padding: 20px; border-radius: 10px; border: 1px solid #d1e9ff;'>";
+            msgg += "        <h2 style='color: #2c3e50; margin-top: 0;'>[서브 활성화 알림]</h2>";
             msgg += "        <p>매치의 서브 타입이 변경되었습니다.</p>";
             msgg += "        <hr style='border: 0; border-top: 1px solid #e1f0ff;'>";
             msgg += "        <p><b>📍 경기장:</b> " + item.getStadiumName() + "</p>";

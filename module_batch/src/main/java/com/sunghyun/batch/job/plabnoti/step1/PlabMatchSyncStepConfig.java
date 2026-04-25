@@ -3,7 +3,7 @@ package com.sunghyun.batch.job.plabnoti.step1;
 import com.sunghyun.batch.dto.ActiveSubType;
 import com.sunghyun.batch.dto.PlabMatchDto;
 import com.sunghyun.batch.dto.PlabMatchDtoWithFlg;
-import com.sunghyun.batch.job.plabnoti.step1.listener.MatchSyncWriterListener;
+import com.sunghyun.batch.job.plabnoti.step1.listener.MatchSyncWriteListener;
 import com.sunghyun.feign.PlabExternalOpenFeignClient;
 import com.sunghyun.feign.dto.PlabMatchResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.batch.builder.MyBatisBatchItemWriterBuilder;
 import org.mybatis.spring.batch.builder.MyBatisCursorItemReaderBuilder;
+import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.repository.JobRepository;
@@ -30,7 +31,7 @@ public class PlabMatchSyncStepConfig {
 
     private final PlabExternalOpenFeignClient plabExternalOpenFeignClient;
     private final SqlSessionFactory sqlSessionFactory;
-    private final MatchSyncWriterListener matchSyncWriterListener;
+    private final MatchSyncWriteListener matchSyncWriteListener;
 
     @Bean
     public Step plabMatchSyncStep(JobRepository jobRepository, PlatformTransactionManager platformTransactionManager){
@@ -39,7 +40,8 @@ public class PlabMatchSyncStepConfig {
                 .reader(plabMatchSyncReader())
                 .processor(plabMatchSyncProcessor())
                 .writer(plabMatchSyncWriter())
-                .listener((StepExecutionListener) matchSyncWriterListener)
+                .listener((StepExecutionListener) matchSyncWriteListener)
+                .listener((ItemWriteListener)matchSyncWriteListener)
                 .build()
                 ;
     }

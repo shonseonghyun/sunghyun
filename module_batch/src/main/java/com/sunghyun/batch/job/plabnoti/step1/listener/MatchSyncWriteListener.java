@@ -11,14 +11,22 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.Chunk;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Component
 @StepScope //Step실행 시점에 빈 생성 / 이게 없으면 updatedMatchList 초기화 되지 않고, 싱글톤으로 해당 클래스가 생성되어 job돌 때 초기화되지 않고 사용되어지게 된다.
-public class MatchSyncWriterListener implements ItemWriteListener<PlabMatchDtoWithFlg>, StepExecutionListener {
+public class MatchSyncWriteListener implements ItemWriteListener<PlabMatchDtoWithFlg>, StepExecutionListener {
     private final List<MatchUpdateEvent> updatedMatchList = new ArrayList<>();
+
+    @Override
+    public void beforeStep(StepExecution stepExecution) {
+        log.info(">>> [{}] Step 시작 시간: {}",
+                stepExecution.getStepName(), stepExecution.getStartTime());
+    }
 
     @Override
     public void afterWrite(Chunk<? extends PlabMatchDtoWithFlg> items) {
@@ -50,6 +58,18 @@ public class MatchSyncWriterListener implements ItemWriteListener<PlabMatchDtoWi
 
     @Override
     public ExitStatus afterStep(StepExecution stepExecution){
+        long duration = Duration.between(
+                stepExecution.getStartTime(),
+                LocalDateTime.now()
+        ).toMillis();
+
+        log.info(">>> [{}] Step 종료. 소요 시간: {}ms (읽기: {}건, 쓰기: {}건)",
+                stepExecution.getStepName(),
+                duration,
+                stepExecution.getReadCount(),
+                stepExecution.getWriteCount()
+        );
+
         if(updatedMatchList.isEmpty()){
             log.info(">>> 업데이트된 매치가 없음. Step2를 건너뜁니다.");
             return new ExitStatus("NO_DATA");
