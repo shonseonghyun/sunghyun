@@ -1,8 +1,10 @@
 package com.sunghyun.plab.subscription.application.port.out.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.sunghyun.plab.match.domain.enums.ActiveSubType;
+import com.sunghyun.plab.match.domain.enums.MatchStatus;
 import com.sunghyun.plab.match.domain.model.PlabMatch;
+import com.sunghyun.plab.subscription.domain.enums.NotiSetting;
+import com.sunghyun.plab.subscription.domain.model.PlabMatchData;
 import lombok.*;
 
 /*
@@ -15,14 +17,15 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PlabMatchResDto {
+public class PlabMatchResDto implements PlabMatchData {
     private Long plabMatchNo;
     private String stadiumName;
     private Integer stadiumNo;
     private String matchDt;
     private String matchTm;
-    private Integer currentPlayerCnt;
-    private ActiveSubType subType;
+    private NotiSetting playerCnt;
+    private NotiSetting subType;
+    private MatchStatus status;
 
     public static PlabMatchResDto from(final PlabMatch plabMatch) {
         if (plabMatch == null) return null;
@@ -33,8 +36,9 @@ public class PlabMatchResDto {
                 .stadiumNo(plabMatch.getStadiumNo())
                 .matchDt(plabMatch.getMatchDt())
                 .matchTm(plabMatch.getMatchTm())
-                .currentPlayerCnt(plabMatch.getCurrentPlayerCnt())
+                .playerCnt(plabMatch.getPlayerCnt())
                 .subType(plabMatch.getSubType())
+                .status(plabMatch.getStatus())
                 .build();
     }
 }

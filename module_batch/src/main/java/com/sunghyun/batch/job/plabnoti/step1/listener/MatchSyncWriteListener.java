@@ -2,6 +2,8 @@ package com.sunghyun.batch.job.plabnoti.step1.listener;
 
 import com.sunghyun.batch.dto.MatchUpdateEvent;
 import com.sunghyun.batch.dto.PlabMatchDtoWithFlg;
+import com.sunghyun.plab.match.domain.enums.MatchStatus;
+import com.sunghyun.plab.subscription.domain.enums.NotiType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.ItemWriteListener;
@@ -31,25 +33,33 @@ public class MatchSyncWriteListener implements ItemWriteListener<PlabMatchDtoWit
     @Override
     public void afterWrite(Chunk<? extends PlabMatchDtoWithFlg> items) {
         log.info("WriterListener afterWriter 실행");
+
         for(PlabMatchDtoWithFlg item:items){
+
+            // [추가] 404로 인해 무효화된 데이터라면 알림 대상(updatedMatchList)에서 제외합니다.
+            if(item.getStatus().equals(MatchStatus.CANCELED)){
+                log.info(">>> 매치번호 {} 는 무효화된 대상이므로 알림 대상에서 제외합니다.", item.getPlabMatchNo());
+                continue;
+            }
+
             if(item.isPlayerCntChanged()){
-                final String notiType = "PLAYER_COUNT";
+                final NotiType notiType = NotiType.PLAYER_COUNT;
                 updatedMatchList.add(
                         new MatchUpdateEvent(
                                 item.getPlabMatchNo(),
                                 notiType,
-                                String.valueOf(item.getCurrentPlayerCnt())
+                                item.getPlayerCnt()
                         )
                 );
             }
 
             if(item.isSubTypeChanged()){
-                final String notiType = "FREE_SUB";
+                final NotiType notiType = NotiType.FREE_SUB;
                 updatedMatchList.add(
                         new MatchUpdateEvent(
                                 item.getPlabMatchNo(),
                                 notiType,
-                                item.getSubType().name()
+                                item.getSubType()
                         )
                 );
             }
@@ -71,7 +81,7 @@ public class MatchSyncWriteListener implements ItemWriteListener<PlabMatchDtoWit
         );
 
         if(updatedMatchList.isEmpty()){
-            log.info(">>> 업데이트된 매치가 없음. Step2를 건너뜁니다.");
+            log.info(">>> 업데이트된 매치가 없음. 다음 STEP을 건너뜁니다.");
             return new ExitStatus("NO_DATA");
         }
 

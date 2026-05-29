@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface SpringJpaPlabMatchRepository extends JpaRepository<PlabMatch,Long> {
-    Optional<PlabMatch> findPlabMatchByplabMatchNo(final Long plabMatchNo);
+    Optional<PlabMatch> findPlabMatchByPlabMatchNo(final Long plabMatchNo);
 }

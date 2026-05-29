@@ -8,7 +8,7 @@ import lombok.Getter;
 public enum ActiveSubType {
     NONE("N","활성화된 프리서브가 없음"),
     SUPER_SUB("S","슈퍼서브 활성화"),
-    MANAGER_SUB("M","매니저 서브 활성화"),
+    MANAGER_FREE("M","매니저 서브 활성화"),
     ALL("A","모두 활성화")
     ;
 
@@ -18,7 +18,7 @@ public enum ActiveSubType {
     public static ActiveSubType getSubType(boolean superSub, boolean managerFree) {
         if (superSub && managerFree) return ALL;
         if (superSub) return SUPER_SUB;
-        if (managerFree) return MANAGER_SUB;
+        if (managerFree) return MANAGER_FREE;
         return NONE;
 
 //        if(!superSub && !managerFree) return NONE;

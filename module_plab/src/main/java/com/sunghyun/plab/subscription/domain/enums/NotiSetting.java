@@ -1,5 +1,7 @@
 package com.sunghyun.plab.subscription.domain.enums;
 
+import com.sunghyun.web.ErrorCode;
+import com.sunghyun.web.exception.InvalidEnumCodeException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -30,21 +32,29 @@ public enum NotiSetting {
     PLAYER_EIGHTEEN(NotiType.PLAYER_COUNT, "18", "18명"),
 
     // 서브 타입 관련 (FREE_SUB)
-    NONE(NotiType.FREE_SUB, "NONE", "활성화 x"),
+    NONE(NotiType.FREE_SUB, "NONE", "활성화된 서브가 없음"),
     SUPER_SUB(NotiType.FREE_SUB, "SUPER_SUB", "슈퍼 서브"),
-    MANAGER_FREE(NotiType.FREE_SUB, "MANAGER_FREE", "매니저 프리")
+    MANAGER_FREE(NotiType.FREE_SUB, "MANAGER_FREE", "매니저 프리"),
+    ALL(NotiType.FREE_SUB,"ALL","모든 서브 활성화")
     ;
 
     private final NotiType notiType;  // 이 설정이 속한 그룹 (PLAYER_COUNT or FREE_SUB)
     private final String code;   // DB에 저장하거나 비즈니스 로직에 쓸 코드값
     private final String desc;
 
-    public static NotiSetting fromCode(String code){
+    public static NotiSetting fromCode(final String code){
         if(code == null) throw new IllegalArgumentException("s");
 
         return Arrays.stream(NotiSetting.values())
                 .filter(notiSetting -> notiSetting.getCode().equals(code))
                 .findFirst()
-                .orElseThrow(()->new IllegalArgumentException("blabal"));
+                .orElseThrow(()->new InvalidEnumCodeException(ErrorCode.E00));
+    }
+
+    public static NotiSetting getSubType(final boolean isSuperSub,final boolean isManagerFree) {
+        if (isSuperSub && isManagerFree) return ALL;
+        if (isSuperSub) return SUPER_SUB;
+        if (isManagerFree) return MANAGER_FREE;
+        return NONE;
     }
 }

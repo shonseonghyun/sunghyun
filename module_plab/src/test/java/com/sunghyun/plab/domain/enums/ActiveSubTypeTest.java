@@ -48,7 +48,7 @@ class ActiveSubTypeTest {
         ActiveSubType activeSubType =ActiveSubType.getSubType(isSuperSub,isManagerFree);
 
         //then
-        assertThat(activeSubType).isEqualTo(ActiveSubType.MANAGER_SUB);
+        assertThat(activeSubType).isEqualTo(ActiveSubType.MANAGER_FREE);
     }
 
 

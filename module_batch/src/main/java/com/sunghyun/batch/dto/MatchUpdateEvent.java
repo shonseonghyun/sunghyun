@@ -1,5 +1,7 @@
 package com.sunghyun.batch.dto;
 
+import com.sunghyun.plab.subscription.domain.enums.NotiSetting;
+import com.sunghyun.plab.subscription.domain.enums.NotiType;
 import lombok.*;
 
 import java.io.Serial;
@@ -16,6 +18,6 @@ public class MatchUpdateEvent implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long plabMatchNo;
-    private String notiType;
-    private String notiValue;
+    private NotiType notiType;
+    private NotiSetting notiValue;
 }

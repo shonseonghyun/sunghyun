@@ -1,6 +1,6 @@
 package com.sunghyun.plab.subscription.application;
 
-import com.sunghyun.plab.subscription.adapter.out.persistence.MatchSubscriptionMapper;
+import com.sunghyun.notification.domain.event.NotificationEvent;
 import com.sunghyun.plab.subscription.application.port.in.MatchSubscriptionUseCase;
 import com.sunghyun.plab.subscription.application.port.in.dto.MatchSubscriptionModReqDto;
 import com.sunghyun.plab.subscription.application.port.in.dto.MatchSubscriptionRegReqDto;
@@ -9,14 +9,18 @@ import com.sunghyun.plab.subscription.application.port.out.dto.MatchSubscription
 import com.sunghyun.plab.subscription.application.port.out.dto.PlabMatchResDto;
 import com.sunghyun.plab.subscription.application.port.out.external.PlabMatchOutPort;
 import com.sunghyun.plab.subscription.application.port.out.persistence.MatchSubscriptionRepository;
+import com.sunghyun.plab.subscription.domain.enums.PlabNotiMessage;
 import com.sunghyun.plab.subscription.domain.exception.ExistMatchSubscriptionException;
 import com.sunghyun.plab.subscription.domain.exception.NotExistMatchSubscriptionException;
 import com.sunghyun.plab.subscription.domain.model.MatchSubscription;
 import com.sunghyun.plab.subscription.domain.service.MatchSubscriptionDomainService;
+import com.sunghyun.plab.subscription.domain.service.SubscriptionNotificationValidator;
 import com.sunghyun.utils.ApiUtils;
 import com.sunghyun.web.ErrorCode;
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,12 +28,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class MatchSubscriptionService implements MatchSubscriptionUseCase {
+    private final SubscriptionNotificationValidator subscriptionNotificationValidator;
     private final MatchSubscriptionDomainService matchSubscriptionDomainService;
     private final MatchSubscriptionRepository matchSubscriptionRepository;
     private final PlabMatchOutPort plabMatchOutPort;
-    private final MatchSubscriptionMapper mapper;
+    private final ApplicationEventPublisher eventPublisher;
 
+    private final HikariDataSource hikariDataSource;
+
+
+    @Transactional
     public MatchSubscriptionRegResDto registerMatchSubscription(final MatchSubscriptionRegReqDto dto){
+        int activeConnections = hikariDataSource.getHikariPoolMXBean().getActiveConnections();
+        int idleConnections = hikariDataSource.getHikariPoolMXBean().getIdleConnections();
+        System.out.println("registerMatchSubscription...");
+        System.out.println("activeConnections = " + activeConnections);
+        System.out.println("idleConnections = " + idleConnections);
+        System.out.println("registerMatchSubscription...");
+
         /* 플랩 매치 등록 */
         //플랩 매치 등록
         // 근데 이게 굳이 동기로 이루어져야할까???
@@ -48,7 +64,7 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
                 })
         ;
 
-        //매치 구독 등록
+        // 매치 구독 등록
         MatchSubscription matchSubscription = matchSubscriptionDomainService.createMatchSubscription(
                 dto.getPlabMatchNo(),
                 dto.getMemberNo(),
@@ -58,13 +74,29 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
         );
 
         //도메인 서비스 내에서 영속화되는 게 아닌 애플리케이션 레이어에서 해야 하지 않나? 얼추 맞는 말이다. 대신, 트랜잭션 분리 여부를 확인해야 한다.
-//        저장
         MatchSubscription savedMatchSubscription = matchSubscriptionRepository.save(matchSubscription);
 
-        //알림 발송(조건에 부합한다면 알림 발송)
-        //이게 비즈니스 로직에 영향을 미쳐선 안된다
-//        sendMail(??)
-        
+        if(subscriptionNotificationValidator.isSatisfied(
+                savedMatchSubscription.getNotiType(),
+                savedMatchSubscription.getNotiValue(),
+                result.getPlayerCnt(),
+                result.getSubType())
+        ){
+            // 메일 발송
+            // 대신 비동기 + 해당 작업 성공 여부가 비즈니스 로직(매치 구독 저장)에 영향을 미쳐선 안 된다.
+            PlabNotiMessage strategy = PlabNotiMessage.valueOf(savedMatchSubscription.getNotiType().name());
+            eventPublisher.publishEvent(
+                    new NotificationEvent<>(
+                            matchSubscription.getMemberNo(),
+                            matchSubscription.getEmail(),
+                            strategy,
+                            result
+                    )
+            );
+        }
+
+        log.info("MatchSubscriptionService register 응답");
+
         return MatchSubscriptionRegResDto.from(savedMatchSubscription,result);
     }
 
@@ -73,13 +105,33 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
         MatchSubscription selectedMatchSubscription = matchSubscriptionRepository.getMatchSubscriptionBySubscriptionNo(subscriptionNo)
                 .orElseThrow(()->new NotExistMatchSubscriptionException(ErrorCode.P03))
                 ;
-        MatchSubscription modifyReqMatchSubscription = dto.toDomain(selectedMatchSubscription.getNotiType());
+        PlabMatchResDto result = plabMatchOutPort.getPlabMatchByPlabMatchNo(selectedMatchSubscription.getPlabMatchNo());
+        final MatchSubscription modifyReqMatchSubscription = dto.toDomain(selectedMatchSubscription.getNotiType());
 
         //업데이트 여부 플래그
         boolean isUpdated = ApiUtils.merge(modifyReqMatchSubscription, selectedMatchSubscription);
         if(isUpdated){
             //새로 변경했으모로 새롭게 알림 받을 수 있드록 false 수정
             matchSubscriptionRepository.save(selectedMatchSubscription);
+        }
+
+        if(subscriptionNotificationValidator.isSatisfied(
+                selectedMatchSubscription.getNotiType(),
+                selectedMatchSubscription.getNotiValue(),
+                result.getPlayerCnt(),
+                result.getSubType())
+        ){
+            // 메일 발송
+            // 대신 비동기 + 해당 작업 성공 여부가 비즈니스 로직(매치 구독 저장)에 영향을 미쳐선 안 된다.
+            PlabNotiMessage strategy = PlabNotiMessage.valueOf(selectedMatchSubscription.getNotiType().name());
+            eventPublisher.publishEvent(
+                    new NotificationEvent<>(
+                            selectedMatchSubscription.getSubscriptionNo(),
+                            selectedMatchSubscription.getEmail(),
+                            strategy,
+                            result
+                    )
+            );
         }
 
         return MatchSubscriptionModResDto.from(selectedMatchSubscription);

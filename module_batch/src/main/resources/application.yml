@@ -30,7 +30,7 @@ mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true # DB\uC758 snake_case\uB97C DTO\uC758 camelCase\uB85C \uC790\uB3D9 \uB9E4\uD551
-
+    type-handlers-package: com.sunghyun.batch.infrastructure.typehandler
 
 
 

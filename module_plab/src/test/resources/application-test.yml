@@ -9,3 +9,8 @@ spring:
     hibernate:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
+
+logging:
+  level:
+    org.springframework.orm.jpa: DEBUG
+    org.hibernate.resource.transaction: DEBUG

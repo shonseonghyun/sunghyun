@@ -12,7 +12,9 @@ public enum ErrorCode {
     C01("잘못된 요청 형식입니다."),      // Type Mismatch 등
     COMMON_404("존재하지 않는 경로입니다."), // 405 Method Not Allowed
     COMMON_405("지원하지 않는 요청 메소드입니다."), // 405 Method Not Allowed
+    COMMON_504("타임아웃 발생하였습니다"),
     MA00("메일 전송 실패하였습니다."), //흠 얘는 5xx로 응답해야 하는데..
+    E00("잘못된 enum 코드입니다."),
 
     // --- 유저 관련 (M) ---
     M00("존재하지 않는 회원입니다."),
@@ -28,6 +30,7 @@ public enum ErrorCode {
     P02("유효하지 않은 플랩 매치 번호입니다."),
     P03("존재하지 않는 구독 매치입니다."),
     P04("모집 기간이 만료된 매치입니다"),
+    P05("취소된 매치입니다."),
 
 
     // --- 시스템 및 기타 (G, P) ---
@@ -37,9 +40,6 @@ public enum ErrorCode {
     // --- 외부 API 관련 ---
     EXTERNAL_API_ERROR("외부 서비스 호출 중 오류가 발생했습니다."),
     COMMON_400("찾을 수 없습니다."),
-
-
-
     ;
 
     private final String message;

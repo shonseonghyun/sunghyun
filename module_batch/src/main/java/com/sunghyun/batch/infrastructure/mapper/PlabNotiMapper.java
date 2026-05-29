@@ -12,6 +12,7 @@ public interface PlabNotiMapper {
     //PlabMath
     List<PlabMatchDto> getPlabMatches();
     void sync(final Long matchNo);
+    void updateMatchStatusCanceled(final Long matchNo);
 
     //MatchSubscription
     List<NotificationTargetDto> findNotificationTargets();

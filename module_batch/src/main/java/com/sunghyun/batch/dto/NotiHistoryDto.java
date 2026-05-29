@@ -1,6 +1,9 @@
 package com.sunghyun.batch.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
@@ -10,8 +13,6 @@ public class NotiHistoryDto {
     private Long subscriptionNo;
     private Long memberNo;
     private String email;
-    private String notiType;
-    private String notiValue;    // DB의 noti_setting 컬럼에 매핑
-    private String sendDt;       // yyyyMMdd
-    private String sendTm;       // HHmmss
+
+    private NotificationTargetDto notificationTargetDto;
 }

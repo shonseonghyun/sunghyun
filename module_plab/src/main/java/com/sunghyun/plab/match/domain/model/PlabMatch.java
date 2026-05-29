@@ -1,17 +1,19 @@
 package com.sunghyun.plab.match.domain.model;
 
 import com.sunghyun.feign.dto.PlabMatchResponseDto;
+import com.sunghyun.plab.match.adapter.out.persistence.MatchStatusConverter;
 import com.sunghyun.plab.match.domain.enums.ActiveSubType;
+import com.sunghyun.plab.match.domain.enums.MatchStatus;
 import com.sunghyun.plab.match.domain.exception.InvalidPlabMatchException;
+import com.sunghyun.plab.subscription.adapter.out.persistence.NotiSettingConverter;
+import com.sunghyun.plab.subscription.domain.enums.NotiSetting;
 import com.sunghyun.utils.ApiUtils;
 import com.sunghyun.web.ErrorCode;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
+@Setter
 @Getter
 @Builder
 @Entity
@@ -42,11 +44,26 @@ public class PlabMatch {
     private String matchTm;
 
     @Column
-    private Integer currentPlayerCnt;
+    @Convert(converter = NotiSettingConverter.class)
+    private NotiSetting playerCnt;
 
     @Column
-    @Enumerated(EnumType.STRING)
-    private ActiveSubType subType;
+    @Convert(converter = NotiSettingConverter.class)
+    private NotiSetting subType;
+
+    @Column
+    @Convert(converter = MatchStatusConverter.class)
+    private MatchStatus status;
+
+    public void validateActiveStatus(){
+        if(isCanceled()){
+            throw new InvalidPlabMatchException(ErrorCode.P05);
+        }
+    }
+
+    private boolean isCanceled(){
+        return this.status == MatchStatus.CANCELED;
+    }
 
     public static PlabMatch create(
             final Long plabMatchNo,
@@ -69,8 +86,9 @@ public class PlabMatch {
                 .stadiumNo(result.getStadiumGroupId())
                 .matchDt(ApiUtils.parseDate(result.getSchedule()))
                 .matchTm(ApiUtils.parseTime(result.getSchedule()))
-                .currentPlayerCnt(result.getTotalApplyCnt())
-                .subType(ActiveSubType.getSubType(result.isSuperSub(),result.isManagerFree()))
+                .playerCnt(NotiSetting.fromCode(String.valueOf(result.getTotalApplyCnt())))
+                .subType(NotiSetting.getSubType(result.isSuperSub(),result.isManagerFree()))
+                .status(MatchStatus.ACTIVE)
                 .build()
                 ;
 

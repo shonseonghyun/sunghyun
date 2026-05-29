@@ -1,11 +1,13 @@
 package com.sunghyun.batch.job.plabnoti.step1;
 
-import com.sunghyun.batch.dto.ActiveSubType;
 import com.sunghyun.batch.dto.PlabMatchDto;
 import com.sunghyun.batch.dto.PlabMatchDtoWithFlg;
 import com.sunghyun.batch.job.plabnoti.step1.listener.MatchSyncWriteListener;
 import com.sunghyun.feign.PlabExternalOpenFeignClient;
 import com.sunghyun.feign.dto.PlabMatchResponseDto;
+import com.sunghyun.plab.match.domain.enums.MatchStatus;
+import com.sunghyun.plab.subscription.domain.enums.NotiSetting;
+import com.sunghyun.web.exception.ExternalResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -16,6 +18,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
@@ -57,73 +60,101 @@ public class PlabMatchSyncStepConfig {
 
     @Bean
     public ItemProcessor<PlabMatchDto, PlabMatchDtoWithFlg> plabMatchSyncProcessor(){
-        return dto->{
-            final Long plabMatchNo = dto.getPlabMatchNo();
+        return plabMatch->{
+            final Long plabMatchNo = plabMatch.getPlabMatchNo();
             log.info(">>> 매치번호 {} 상태 동기화 시작", plabMatchNo);
 
             //여기서 예외 발생할 수 있는데 어떻게 처리할꺼야?
-            PlabMatchResponseDto result = plabExternalOpenFeignClient.getMatch(plabMatchNo);
+            try{
+                PlabMatchResponseDto result = plabExternalOpenFeignClient.getMatch(plabMatchNo);
 
-            final Integer totalApplyCnt = result.getTotalApplyCnt();
-            final boolean isManagerFree = result.isManagerFree();
-            final boolean isSuperSub = result.isSuperSub();
-            final ActiveSubType plabSubType = ActiveSubType.getSubType(isSuperSub,isManagerFree);
+                final NotiSetting totalApplyCnt = NotiSetting.fromCode(String.valueOf(result.getTotalApplyCnt()));
+                final boolean isManagerFree = result.isManagerFree();
+                final boolean isSuperSub = result.isSuperSub();
+                final NotiSetting subType = NotiSetting.getSubType(isSuperSub,isManagerFree);
 
 
-            // 2. 변경 여부 체크 (값 비교)
-            // - 인원수가 다르거나
-            // - 서브타입(Enum)이 다르거나
-            boolean isPlayerCntChanged = !dto.getCurrentPlayerCnt().equals(totalApplyCnt);
-            boolean isSubTypeChanged = dto.getSubType() != plabSubType;
+                // 2. 변경 여부 체크( 인원수, 서브타입 )
+                boolean isPlayerCntChanged = !plabMatch.getPlayerCnt().equals(totalApplyCnt);
+                boolean isSubTypeChanged = plabMatch.getSubType() != subType;
 
-            if(isPlayerCntChanged){
-                log.info(">>> 매치번호 {} 데이터 변경 감지 (인원: {}->{})",
-                        plabMatchNo,
-                        dto.getCurrentPlayerCnt(),
-                        totalApplyCnt
-                );
+                if(isPlayerCntChanged){
+                    log.info(">>> 매치번호 {} 데이터 변경 감지 (인원: {}->{})",
+                            plabMatchNo,
+                            plabMatch.getPlayerCnt(),
+                            totalApplyCnt
+                    );
 
-                dto.setCurrentPlayerCnt(totalApplyCnt);
-            }
+                    plabMatch.setPlayerCnt(totalApplyCnt);
+                }
 
-            if(isSubTypeChanged) {
-                log.info(">>> 매치번호 {} 데이터 변경 감지 (타입: {}->{})",
-                        plabMatchNo,
-                        dto.getSubType(),
-                        plabSubType
-                );
+                if(isSubTypeChanged) {
+                    log.info(">>> 매치번호 {} 데이터 변경 감지 (타입: {}->{})",
+                            plabMatchNo,
+                            plabMatch.getSubType(),
+                            subType
+                    );
 
-                // DTO에 새로운 값 세팅
-                dto.setSubType(plabSubType);
-            }
+                    // DTO에 새로운 값 세팅
+                    plabMatch.setSubType(subType);
+                }
 
-            if(isSubTypeChanged || isPlayerCntChanged) {
+                if(isSubTypeChanged || isPlayerCntChanged) {
+                    return PlabMatchDtoWithFlg.builder()
+                            .matchNo(plabMatch.getMatchNo())
+                            .plabMatchNo(plabMatch.getPlabMatchNo())
+                            .stadiumName(plabMatch.getStadiumName())
+                            .stadiumNo(plabMatch.getStadiumNo())
+                            .matchTm(plabMatch.getMatchTm())
+                            .matchDt(plabMatch.getMatchDt())
+                            .playerCnt(totalApplyCnt)
+                            .subType(subType)
+                            .playerCntChanged(isPlayerCntChanged)
+                            .subTypeChanged(isSubTypeChanged)
+                            .status(plabMatch.getStatus())
+                            .build()
+                            ;
+                }
+
+                // 3. 변경사항이 없으면 null 리턴 (해당 아이템은 writer로 넘어가지 않음)
+                log.info(">>> 매치번호 {} 변경사항 없음 - 건너뜁니다.", plabMatchNo);
+                return null;
+            }catch (ExternalResourceNotFoundException e){
+                log.warn(">>> 해당 매치는 취소되었거나 api 내부 에러 발생한 것으로 보입니다. 무효화 대상으로 분리합니다.");
                 return PlabMatchDtoWithFlg.builder()
-                        .matchNo(dto.getMatchNo())
-                        .plabMatchNo(dto.getPlabMatchNo())
-                        .stadiumName(dto.getStadiumName())
-                        .stadiumNo(dto.getStadiumNo())
-                        .matchTm(dto.getMatchTm())
-                        .matchDt(dto.getMatchDt())
-                        .currentPlayerCnt(totalApplyCnt)
-                        .subType(plabSubType)
-                        .playerCntChanged(isPlayerCntChanged)
-                        .subTypeChanged(isSubTypeChanged)
+                        .matchNo(plabMatch.getMatchNo())
+                        .plabMatchNo(plabMatch.getPlabMatchNo())
+                        .status(MatchStatus.CANCELED)
                         .build()
                         ;
             }
-
-            // 3. 변경사항이 없으면 null 리턴 (해당 아이템은 writer로 넘어가지 않음)
-            log.info(">>> 매치번호 {} 변경사항 없음 - 건너뜁니다.", plabMatchNo);
-            return null;
         };
     }
 
     @Bean
     public ItemWriter<PlabMatchDtoWithFlg> plabMatchSyncWriter(){
-        return new MyBatisBatchItemWriterBuilder<PlabMatchDtoWithFlg>()
+
+        //1. 정상 업데이트용 writer
+        ItemWriter<PlabMatchDtoWithFlg> syncWriter = new MyBatisBatchItemWriterBuilder<PlabMatchDtoWithFlg>()
                 .sqlSessionFactory(sqlSessionFactory)
                 .statementId("com.sunghyun.batch.infrastructure.mapper.PlabNotiMapper.sync")
                 .build();
+
+        // 2. 404  발생 시 상태 변경용 writer
+        ItemWriter<PlabMatchDtoWithFlg> invalidWriter = new MyBatisBatchItemWriterBuilder<PlabMatchDtoWithFlg>()
+                .sqlSessionFactory(sqlSessionFactory)
+                .statementId("com.sunghyun.batch.infrastructure.mapper.PlabNotiMapper.updateMatchStatusCanceled")
+                .build();
+
+        return items -> {
+            for (PlabMatchDtoWithFlg item : items) {
+                if (item.getStatus().equals(MatchStatus.CANCELED)) {
+                    log.info("상태 변경 writer 실행");
+                    invalidWriter.write(Chunk.of(item));
+                } else {
+                    syncWriter.write(Chunk.of(item));
+                }
+            }
+        };
     }
 }

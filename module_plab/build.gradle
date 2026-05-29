@@ -20,7 +20,8 @@ dependencies {
 
     //모듈 간 의존성
     implementation project(':common')
+    implementation project(':module_notification')
 }
 
 bootJar{ enabled = true }
-jar{ enabled = false }
+jar{ enabled = true }

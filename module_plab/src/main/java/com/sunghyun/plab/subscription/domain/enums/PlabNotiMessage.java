@@ -1,21 +1,21 @@
-package com.sunghyun.batch.job.plabnoti.step2;
+package com.sunghyun.plab.subscription.domain.enums;
 
-import com.sunghyun.batch.dto.NotificationTargetDto;
-import com.sunghyun.mail.MailMessage;
+import com.sunghyun.notification.config.Message;
+import com.sunghyun.plab.subscription.domain.model.PlabMatchData;
 
-public enum PlabNotiMailMessage implements MailMessage<NotificationTargetDto> {
+public enum PlabNotiMessage implements Message<PlabMatchData> {
     PLAYER_COUNT{
-        public String getSubject(final NotificationTargetDto item) {
+        public String getSubject(final PlabMatchData item) {
             final String subject = String.format(
-                    "[알림] %s 매치 인원 %s명 충족",
+                    "[알림] %s 매치 인원 %s 충족",
                     item.getStadiumName(),
-                    item.getCurrentPlayerCnt()
+                    item.getPlayerCnt().getDesc()
             );
 
             return subject;
         }
 
-        public String getContent(final NotificationTargetDto item) {
+        public String getContent(final PlabMatchData item) {
             String matchUrl = "https://www.plabfootball.com/match/" + item.getPlabMatchNo() + "/";
             String msgg = "";
             msgg += "<div style='margin:20px; font-family: sans-serif;'>";
@@ -24,7 +24,7 @@ public enum PlabNotiMailMessage implements MailMessage<NotificationTargetDto> {
             msgg += "        <p>설정하신 매치의 인원 조건이 충족되었습니다.</p>";
             msgg += "        <hr style='border: 0; border-top: 1px solid #eee;'>";
             msgg += "        <p><b>📍 경기장:</b> " + item.getStadiumName() + "</p>";
-            msgg += "        <p><b>👥 현재 인원:</b> <span style='color: #e74c3c; font-size: 1.1em;'>" + item.getCurrentPlayerCnt() + "명</span></p>";
+            msgg += "        <p><b>👥 현재 인원:</b> <span style='color: #e74c3c; font-size: 1.1em;'>" + item.getPlayerCnt().getDesc() + "</span></p>";
             msgg += "        <p><b>⏰ 경기 일시:</b> " + item.getMatchDt() + " " + item.getMatchTm() + "</p>";
             msgg += "        <br>";
             // 하이퍼링크 버튼 추가
@@ -38,14 +38,14 @@ public enum PlabNotiMailMessage implements MailMessage<NotificationTargetDto> {
         }
     },
     FREE_SUB{
-        public String getSubject(final NotificationTargetDto item) {
+        public String getSubject(final PlabMatchData item) {
             String subject = String.format("[상태변경] %s 서브 타입: %s",
-                    item.getStadiumName(), item.getCurrentSubType());
+                    item.getStadiumName(), item.getSubType().getDesc());
 
             return subject;
         }
 
-        public String getContent(final NotificationTargetDto item) {
+        public String getContent(final PlabMatchData item) {
             String matchUrl = "https://www.plabfootball.com/match/" + item.getPlabMatchNo() + "/";
             String msgg = "";
             msgg += "<div style='margin:20px; font-family: sans-serif;'>";
@@ -54,7 +54,7 @@ public enum PlabNotiMailMessage implements MailMessage<NotificationTargetDto> {
             msgg += "        <p>매치의 서브 타입이 변경되었습니다.</p>";
             msgg += "        <hr style='border: 0; border-top: 1px solid #e1f0ff;'>";
             msgg += "        <p><b>📍 경기장:</b> " + item.getStadiumName() + "</p>";
-            msgg += "        <p><b>✨ 변경된 타입:</b> <span style='color: #007bff; font-size: 1.1em; font-weight: bold;'>" + item.getCurrentSubType() + "</span></p>";
+            msgg += "        <p><b>✨ 변경된 타입:</b> <span style='color: #007bff; font-size: 1.1em; font-weight: bold;'>" + item.getSubType().getDesc() + "</span></p>";
             msgg += "        <p><b>⏰ 경기 일시:</b> " + item.getMatchDt() + " " + item.getMatchTm() + "</p>";
             msgg += "        <br>";
             // 하이퍼링크 버튼 추가
@@ -67,6 +67,4 @@ public enum PlabNotiMailMessage implements MailMessage<NotificationTargetDto> {
             return msgg;
         }
     }
-    ;
-
 }

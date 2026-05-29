@@ -1,4 +1,4 @@
-package com.sunghyun.mail;
+package com.sunghyun.notification.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

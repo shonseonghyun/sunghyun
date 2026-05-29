@@ -19,6 +19,6 @@ public class PlabMatchRepositoryImpl implements PlabMatchRepository {
 
     @Override
     public Optional<PlabMatch> getPlabMatchByPlabMatchNo(final Long plabMatchNo) {
-        return springJpaPlabMatchRepository.findPlabMatchByplabMatchNo(plabMatchNo);
+        return springJpaPlabMatchRepository.findPlabMatchByPlabMatchNo(plabMatchNo);
     }
 }

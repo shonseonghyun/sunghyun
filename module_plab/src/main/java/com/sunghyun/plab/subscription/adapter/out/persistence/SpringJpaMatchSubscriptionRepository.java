@@ -8,3 +8,4 @@ import java.util.Optional;
 public interface SpringJpaMatchSubscriptionRepository extends JpaRepository<MatchSubscriptionEntity,Long> {
     Optional<MatchSubscriptionEntity> findMatchSubscriptionByMemberNoAndPlabMatchNoAndNotiType(final Long memberNo, final Long plabMatchNo, final NotiType notiType);
 }
+

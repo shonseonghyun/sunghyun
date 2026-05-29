@@ -7,10 +7,12 @@ import com.sunghyun.plab.match.application.port.out.repository.PlabMatchReposito
 import com.sunghyun.plab.match.domain.model.PlabMatch;
 import com.sunghyun.plab.subscription.application.port.out.dto.PlabMatchResDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PlabMatchService implements PlabMatchUseCase {
@@ -21,7 +23,10 @@ public class PlabMatchService implements PlabMatchUseCase {
     //concurrency 여러 유저가 동시에 동일한 매치를 등록하려고 할 때, 동시성은 어떻게 잡을 것 인가?
     public PlabMatchResDto registerPlabMatch(final Long plabMatchNo){
         return plabMatchRepository.getPlabMatchByPlabMatchNo(plabMatchNo)
-                .map(PlabMatchResDto::from)
+                .map(plabMatch -> {
+                    plabMatch.validateActiveStatus(); //도메인 계층으로 위임
+                    return PlabMatchResDto.from(plabMatch);
+                })
                 .orElseGet(() -> {
                     //Plab Api 검증 처리
                     PlabMatchResponseDto result = plabOpenFeignClient.getMatch(plabMatchNo);

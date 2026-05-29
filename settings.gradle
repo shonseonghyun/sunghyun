@@ -8,4 +8,5 @@ include 'module_member'
 include 'common'
 include 'module_plab'
 include 'module_batch'
+include 'module_notification'
 

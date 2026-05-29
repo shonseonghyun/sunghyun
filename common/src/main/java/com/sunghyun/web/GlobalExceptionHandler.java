@@ -1,8 +1,13 @@
 package com.sunghyun.web;
 
 import com.sunghyun.web.exception.BaseException;
+import feign.FeignException;
+import feign.Request;
+import feign.RetryableException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -15,9 +20,11 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -112,5 +119,17 @@ public class GlobalExceptionHandler {
     public GlobalResponse handleBaseException(BaseException baseException){
         ErrorCode errorCode = baseException.getErrorCode();
         return GlobalResponse.of(errorCode);
+    }
+
+    @ExceptionHandler(RetryableException.class)
+    @ResponseStatus(HttpStatus.GATEWAY_TIMEOUT)
+    public GlobalResponse handleFeignException(final RetryableException e){
+        log.info("FeignException 익셉션 발생");
+        final String url = e.request().url();
+        final String httpMethod = e.request().httpMethod().toString();
+
+        log.error("외부 API 호출 타임아웃 발생! 메소드 타입: [{}], URL: [{}]", httpMethod, url);
+
+        return GlobalResponse.of(ErrorCode.COMMON_504);
     }
 }

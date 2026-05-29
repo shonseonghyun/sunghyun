@@ -3,7 +3,16 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.sunghyun.batch.infrastructure.mapper.PlabNotiMapper">
-    <select id="getPlabMatches" resultType="com.sunghyun.batch.dto.PlabMatchDto">
+    <resultMap id="PlabMatchMap" type="com.sunghyun.batch.dto.PlabMatchDto">
+        <result column="player_cnt" property="playerCnt"
+                typeHandler="com.sunghyun.batch.infrastructure.typehandler.NotiSettingTypeHandler"/>
+        <result column="sub_type" property="subType"
+                typeHandler="com.sunghyun.batch.infrastructure.typehandler.NotiSettingTypeHandler"/>
+        <result column="status" property="status"
+                typeHandler="com.sunghyun.batch.infrastructure.typehandler.MatchStatusTypeHandler"/>
+    </resultMap>
+
+    <select id="getPlabMatches" resultMap="PlabMatchMap">
         SELECT
             match_no,
             plab_match_no,
@@ -11,43 +20,70 @@
             stadium_no,
             match_dt,
             match_tm,
-            current_player_cnt,
-            sub_type
+            player_cnt,
+            sub_type,
+            status
         FROM plab_match
         WHERE STR_TO_DATE(CONCAT(match_dt, match_tm), '%Y%m%d%H%i%s') >= NOW()
+        AND status = 'O'
         ORDER BY match_dt ASC, match_tm ASC
     </select>
 
     <select id="sync" resultType="com.sunghyun.batch.dto.PlabMatchDto">
         UPDATE plab_match
         SET
-            current_player_cnt = #{currentPlayerCnt},
-            sub_type = #{subType, typeHandler=org.apache.ibatis.type.EnumTypeHandler}
+            player_cnt = #{playerCnt, typeHandler=com.sunghyun.batch.infrastructure.typehandler.NotiSettingTypeHandler},
+            sub_type = #{subType, typeHandler=com.sunghyun.batch.infrastructure.typehandler.NotiSettingTypeHandler}
         WHERE match_no = #{matchNo}
     </select>
 
-    <select id="findNotificationTargets" resultType="com.sunghyun.batch.dto.NotificationTargetDto">
+    <select id="updateMatchStatusCanceled" resultType="com.sunghyun.batch.dto.PlabMatchDto">
+        UPDATE plab_match
+        SET
+            status=#{status.code}
+        WHERE match_no = #{matchNo}
+    </select>
+
+
+    <resultMap id="NotificationTargetMap" type="com.sunghyun.batch.dto.NotificationTargetDto">
+        <id column="subscription_no" property="subscriptionNo"/>
+        <result column="plab_match_no" property="plabMatchNo"/>
+        <result column="member_no" property="memberNo"/>
+        <result column="email" property="email"/>
+        <result column="stadium_name" property="stadiumName"/>
+        <result column="match_dt" property="matchDt"/>
+        <result column="match_tm" property="matchTm"/>
+
+        <result column="noti_type" property="notiType"/>
+
+        <result column="noti_value" property="notiValue"
+                typeHandler="com.sunghyun.batch.infrastructure.typehandler.NotiSettingTypeHandler"/>
+        <result column="player_cnt" property="playerCnt"
+                typeHandler="com.sunghyun.batch.infrastructure.typehandler.NotiSettingTypeHandler"/>
+        <result column="sub_type" property="subType"
+                typeHandler="com.sunghyun.batch.infrastructure.typehandler.NotiSettingTypeHandler"/>
+    </resultMap>
+
+    <select id="findNotificationTargets" resultMap="NotificationTargetMap">
         SELECT
         s.subscription_no,
         m.plab_match_no,
         s.member_no,
         s.email,
-
         m.stadium_name,
         m.match_dt,
         m.match_tm,
-
         s.noti_type,
         s.noti_value,
-        m.current_player_cnt,
-        m.sub_type as currentSubType
+        m.player_cnt,
+        m.sub_type
         FROM match_subscription s
         JOIN plab_match m ON s.plab_match_no = m.plab_match_no
         WHERE
         <foreach collection="updatedMatchList" item="e" separator="OR">
             (
-                s.plab_match_no = #{e.plabMatchNo}
-                AND s.noti_type = #{e.notiType}
+            s.plab_match_no = #{e.plabMatchNo}
+            AND s.noti_type = #{e.notiType}
             )
         </foreach>
     </select>
@@ -61,12 +97,13 @@
             noti_setting,
             send_dt,
             send_tm
-        ) VALUES (
+        )
+        VALUES (
             #{subscriptionNo},
             #{memberNo},
             #{email},
             #{notiType},
-            #{notiValue},
+            #{notiValue, typeHandler=com.sunghyun.batch.infrastructure.typehandler.NotiSettingTypeHandler},
             #{sendDt},
             #{sendTm}
         )
