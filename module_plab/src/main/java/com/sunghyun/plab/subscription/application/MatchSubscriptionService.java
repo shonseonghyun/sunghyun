@@ -1,11 +1,11 @@
 package com.sunghyun.plab.subscription.application;
 
-import com.sunghyun.notification.domain.event.NotificationEvent;
 import com.sunghyun.plab.subscription.application.port.in.MatchSubscriptionUseCase;
 import com.sunghyun.plab.subscription.application.port.in.dto.MatchSubscriptionModReqDto;
 import com.sunghyun.plab.subscription.application.port.in.dto.MatchSubscriptionRegReqDto;
 import com.sunghyun.plab.subscription.application.port.out.dto.MatchSubscriptionModResDto;
 import com.sunghyun.plab.subscription.application.port.out.dto.MatchSubscriptionRegResDto;
+import com.sunghyun.plab.subscription.application.port.out.dto.NotificationRequestedEvent;
 import com.sunghyun.plab.subscription.application.port.out.dto.PlabMatchResDto;
 import com.sunghyun.plab.subscription.application.port.out.external.PlabMatchOutPort;
 import com.sunghyun.plab.subscription.application.port.out.persistence.MatchSubscriptionRepository;
@@ -21,6 +21,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,10 +33,12 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
     private final MatchSubscriptionDomainService matchSubscriptionDomainService;
     private final MatchSubscriptionRepository matchSubscriptionRepository;
     private final PlabMatchOutPort plabMatchOutPort;
-    private final ApplicationEventPublisher eventPublisher;
 
     private final HikariDataSource hikariDataSource;
 
+    private final ApplicationEventPublisher eventPublisher;
+    private final KafkaTemplate<String,Object> kafkaTemplate; //카프카가 아니라 새로운 걸로 변환해야한다면?
+//    private final NotificationEventOutPort notificationEventOutPort;
 
     @Transactional
     public MatchSubscriptionRegResDto registerMatchSubscription(final MatchSubscriptionRegReqDto dto){
@@ -85,13 +88,22 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
             // 메일 발송
             // 대신 비동기 + 해당 작업 성공 여부가 비즈니스 로직(매치 구독 저장)에 영향을 미쳐선 안 된다.
             PlabNotiMessage strategy = PlabNotiMessage.valueOf(savedMatchSubscription.getNotiType().name());
-            eventPublisher.publishEvent(
-                    new NotificationEvent<>(
-                            matchSubscription.getMemberNo(),
-                            matchSubscription.getEmail(),
-                            strategy,
-                            result
-                    )
+            // 인프라 기술에 직접 의존, 만약 추후 kafka로 변경될 시 직접 서비스 코드를 변경해야 한다..
+//            eventPublisher.publishEvent(
+//                    new NotificationEvent<>(
+//                            matchSubscription.getMemberNo(),
+//                            matchSubscription.getEmail(),
+//                            strategy,
+//                            result
+//                    )
+//            );
+
+            kafkaTemplate.send("plab-noti",new NotificationRequestedEvent(
+                    matchSubscription.getMemberNo(),
+                    matchSubscription.getEmail(),
+                    strategy.getSubject(result),
+                    strategy.getContent(result)
+                )
             );
         }
 
@@ -124,14 +136,21 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
             // 메일 발송
             // 대신 비동기 + 해당 작업 성공 여부가 비즈니스 로직(매치 구독 저장)에 영향을 미쳐선 안 된다.
             PlabNotiMessage strategy = PlabNotiMessage.valueOf(selectedMatchSubscription.getNotiType().name());
-            eventPublisher.publishEvent(
-                    new NotificationEvent<>(
-                            selectedMatchSubscription.getSubscriptionNo(),
-                            selectedMatchSubscription.getEmail(),
-                            strategy,
-                            result
-                    )
-            );
+//            eventPublisher.publishEvent(
+//                    new NotificationEvent<>(
+//                            selectedMatchSubscription.getSubscriptionNo(),
+//                            selectedMatchSubscription.getEmail(),
+//                            strategy,
+//                            result
+//                    )
+//            );
+            kafkaTemplate.send("plab-noti", new NotificationRequestedEvent(
+                    modifyReqMatchSubscription.getMemberNo(),
+                    modifyReqMatchSubscription.getEmail(),
+                    strategy.getSubject(result),
+                    strategy.getContent(result)
+            ));
+
         }
 
         return MatchSubscriptionModResDto.from(selectedMatchSubscription);

@@ -1,4 +1,4 @@
-package com.sunghyun.notification.config;
+package com.sunghyun.message;
 
 public interface Message<T> {
     String getSubject(T data);

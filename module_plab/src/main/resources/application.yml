@@ -1,11 +1,13 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: plab
-  server:
-    port: 8081
+
 
   profiles:
-    include: feign,redis,mail #coomon 모듈에 있는 redis,feign 같이 읽어옴
+    include: feign,redis,kafka #coomon 모듈에 있는 redis,feign 같이 읽어옴
 
   datasource:
     # MySQL

@@ -1,7 +1,7 @@
 package com.sunghyun.notification.adapter.out.mail;
 
+import com.sunghyun.message.Message;
 import com.sunghyun.notification.application.port.out.NotificationSendPort;
-import com.sunghyun.notification.config.Message;
 import com.sunghyun.notification.domain.exception.MailSendException;
 import com.sunghyun.web.ErrorCode;
 import jakarta.mail.MessagingException;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 public class MailService implements NotificationSendPort {
     private final JavaMailSender emailSender;
 
+    @Override
     public <T> void send(final String to, final Message<T> messageStrategy, final T data) {
         try {
             log.info(">>> [MailService] 메일 발송 시작 (Thread: {})", Thread.currentThread().getName());
@@ -35,7 +36,7 @@ public class MailService implements NotificationSendPort {
     }
 
     // 메일 내용 작성
-    public <T> MimeMessage createMessage(final String to, final Message<T> messageStrategy, final T data) throws MessagingException {
+    private <T> MimeMessage createMessage(final String to, final Message<T> messageStrategy, final T data) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         message.addRecipients(jakarta.mail.Message.RecipientType.TO, to);
 
@@ -44,6 +45,34 @@ public class MailService implements NotificationSendPort {
 
         // 메일 내용, charset타입, subtype
         message.setText(messageStrategy.getContent(data), "utf-8", "html");
+
+        // 보내는 사람의 이메일 주소, 보내는 사람 이름
+        message.setFrom("sunghyun7895@naver.com");
+
+        return message;
+    }
+
+
+    @Override
+    public void send(String to, String subject, String content) {
+        try{
+            final MimeMessage message = createMessage(to,subject,content);
+            emailSender.send(message);
+        }catch (MessagingException e){
+            log.error("메일 발송 도중 에러 발생");
+            throw new MailSendException(ErrorCode.MA00);
+        }
+    }
+
+    private MimeMessage createMessage(final String to, final String subject, final String content) throws MessagingException {
+        MimeMessage message = emailSender.createMimeMessage();
+        message.addRecipients(jakarta.mail.Message.RecipientType.TO, to);
+
+        // 이메일 제목
+        message.setSubject(subject);
+
+        // 메일 내용, charset타입, subtype
+        message.setText(content, "utf-8", "html");
 
         // 보내는 사람의 이메일 주소, 보내는 사람 이름
         message.setFrom("sunghyun7895@naver.com");

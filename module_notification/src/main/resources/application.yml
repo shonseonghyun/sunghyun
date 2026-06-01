@@ -1,11 +1,12 @@
+server:
+  port: 8085
+
 spring:
   application:
     name: notification
-  server:
-    port: 8085
 
   profiles:
-    include: feign,redis #coomon 모듈에 있는 redis,feign 같이 읽어옴
+    include: feign,redis,mail,kafka #common 모듈에 있는 redis,feign 같이 읽어옴
 
   datasource:
     # MySQL

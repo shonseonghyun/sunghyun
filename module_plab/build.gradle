@@ -9,6 +9,9 @@ dependencies {
     // api-utils 모듈에서 api로 의존
 //    implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka' // kafka 의존성 추가
+
     //DB
     runtimeOnly 'com.mysql:mysql-connector-j'
     testRuntimeOnly 'com.h2database:h2'
@@ -20,7 +23,7 @@ dependencies {
 
     //모듈 간 의존성
     implementation project(':common')
-    implementation project(':module_notification')
+//    implementation project(':module_notification')
 }
 
 bootJar{ enabled = true }
