@@ -42,14 +42,14 @@ public class KafkaConsumerConfig {
 
 
         //컨슈머 명칭
-        String uniqueConsumerName = "plab-noti-" + java.util.UUID.randomUUID().toString().substring(0, 5);
+        final String uniqueConsumerName = "plab-noti-consumer";
         props.put(ConsumerConfig.CLIENT_ID_CONFIG, uniqueConsumerName);
 
         // 초기 오프셋 읽기 위치 설정
 //        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         // 수동 커밋
-//        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
         return new DefaultKafkaConsumerFactory<>(props);
     }

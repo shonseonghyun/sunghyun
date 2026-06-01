@@ -8,7 +8,6 @@ import com.sunghyun.notification.application.port.out.NotificationSendPort;
 import com.sunghyun.notification.domain.model.NotiHistory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,9 +37,7 @@ public class NotificationService implements NotificationUseCase {
     }
 
     @Override
-    @KafkaListener(topics = "plab-noti",groupId = "plab-noti-group")
     public void doNoti(final NotificationRequestEventDto dto) {
-        log.info("kafkaListener 구독 통해 doNoti 처리 시작");
         //알림 발송 도메인 생성
         NotiHistory notiHistory = NotiHistory.create(
                 dto.getMemberNo(),
