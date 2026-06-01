@@ -7,6 +7,7 @@ import com.sunghyun.plab.subscription.application.port.out.dto.MatchSubscription
 import com.sunghyun.plab.subscription.application.port.out.dto.MatchSubscriptionRegResDto;
 import com.sunghyun.plab.subscription.application.port.out.dto.NotificationRequestedEvent;
 import com.sunghyun.plab.subscription.application.port.out.dto.PlabMatchResDto;
+import com.sunghyun.plab.subscription.application.port.out.external.NotificationEventOutPort;
 import com.sunghyun.plab.subscription.application.port.out.external.PlabMatchOutPort;
 import com.sunghyun.plab.subscription.application.port.out.persistence.MatchSubscriptionRepository;
 import com.sunghyun.plab.subscription.domain.enums.PlabNotiMessage;
@@ -20,8 +21,6 @@ import com.sunghyun.web.ErrorCode;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,9 +35,9 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
 
     private final HikariDataSource hikariDataSource;
 
-    private final ApplicationEventPublisher eventPublisher;
-    private final KafkaTemplate<String,Object> kafkaTemplate; //카프카가 아니라 새로운 걸로 변환해야한다면?
-//    private final NotificationEventOutPort notificationEventOutPort;
+//    private final ApplicationEventPublisher eventPublisher;
+//    private final KafkaTemplate<String,Object> kafkaTemplate; //카프카가 아니라 새로운 걸로 변환해야한다면?
+    private final NotificationEventOutPort notificationEventOutPort;
 
     @Transactional
     public MatchSubscriptionRegResDto registerMatchSubscription(final MatchSubscriptionRegReqDto dto){
@@ -79,15 +78,17 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
         //도메인 서비스 내에서 영속화되는 게 아닌 애플리케이션 레이어에서 해야 하지 않나? 얼추 맞는 말이다. 대신, 트랜잭션 분리 여부를 확인해야 한다.
         MatchSubscription savedMatchSubscription = matchSubscriptionRepository.save(matchSubscription);
 
-        if(subscriptionNotificationValidator.isSatisfied(
-                savedMatchSubscription.getNotiType(),
-                savedMatchSubscription.getNotiValue(),
-                result.getPlayerCnt(),
-                result.getSubType())
-        ){
+        publishNotificationIfSatisfied(savedMatchSubscription,result);
+
+//        if(subscriptionNotificationValidator.isSatisfied(
+//                savedMatchSubscription.getNotiType(),
+//                savedMatchSubscription.getNotiValue(),
+//                result.getPlayerCnt(),
+//                result.getSubType())
+//        ){
             // 메일 발송
             // 대신 비동기 + 해당 작업 성공 여부가 비즈니스 로직(매치 구독 저장)에 영향을 미쳐선 안 된다.
-            PlabNotiMessage strategy = PlabNotiMessage.valueOf(savedMatchSubscription.getNotiType().name());
+//            PlabNotiMessage strategy = PlabNotiMessage.valueOf(savedMatchSubscription.getNotiType().name());
             // 인프라 기술에 직접 의존, 만약 추후 kafka로 변경될 시 직접 서비스 코드를 변경해야 한다..
 //            eventPublisher.publishEvent(
 //                    new NotificationEvent<>(
@@ -98,15 +99,25 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
 //                    )
 //            );
 
-            kafkaTemplate.send("plab-noti",new NotificationRequestedEvent(
-                    matchSubscription.getMemberNo(),
-                    matchSubscription.getEmail(),
-                    strategy.getSubject(result),
-                    strategy.getContent(result)
-                )
-            );
-        }
+//            kafkaTemplate.send("plab-noti",new NotificationRequestedEvent(
+//                    matchSubscription.getMemberNo(),
+//                    matchSubscription.getEmail(),
+//                    strategy.getSubject(result),
+//                    strategy.getContent(result)
+//                )
+//            );
+//            notificationEventOutPort.publish(
+//                    new NotificationRequestedEvent(
+//                        matchSubscription.getMemberNo(),
+//                        matchSubscription.getEmail(),
+//                        strategy.getSubject(result),
+//                        strategy.getContent(result)
+//                )
+//            );
+//        }
 
+
+        
         log.info("MatchSubscriptionService register 응답");
 
         return MatchSubscriptionRegResDto.from(savedMatchSubscription,result);
@@ -127,15 +138,17 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
             matchSubscriptionRepository.save(selectedMatchSubscription);
         }
 
-        if(subscriptionNotificationValidator.isSatisfied(
-                selectedMatchSubscription.getNotiType(),
-                selectedMatchSubscription.getNotiValue(),
-                result.getPlayerCnt(),
-                result.getSubType())
-        ){
-            // 메일 발송
-            // 대신 비동기 + 해당 작업 성공 여부가 비즈니스 로직(매치 구독 저장)에 영향을 미쳐선 안 된다.
-            PlabNotiMessage strategy = PlabNotiMessage.valueOf(selectedMatchSubscription.getNotiType().name());
+        publishNotificationIfSatisfied(selectedMatchSubscription,result);
+
+//        if(subscriptionNotificationValidator.isSatisfied(
+//                selectedMatchSubscription.getNotiType(),
+//                selectedMatchSubscription.getNotiValue(),
+//                result.getPlayerCnt(),
+//                result.getSubType())
+//        ){
+//            // 메일 발송
+//            // 대신 비동기 + 해당 작업 성공 여부가 비즈니스 로직(매치 구독 저장)에 영향을 미쳐선 안 된다.
+//            PlabNotiMessage strategy = PlabNotiMessage.valueOf(selectedMatchSubscription.getNotiType().name());
 //            eventPublisher.publishEvent(
 //                    new NotificationEvent<>(
 //                            selectedMatchSubscription.getSubscriptionNo(),
@@ -144,15 +157,47 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
 //                            result
 //                    )
 //            );
-            kafkaTemplate.send("plab-noti", new NotificationRequestedEvent(
-                    modifyReqMatchSubscription.getMemberNo(),
-                    modifyReqMatchSubscription.getEmail(),
-                    strategy.getSubject(result),
-                    strategy.getContent(result)
-            ));
+//            kafkaTemplate.send("plab-noti", new NotificationRequestedEvent(
+//                    modifyReqMatchSubscription.getMemberNo(),
+//                    modifyReqMatchSubscription.getEmail(),
+//                    strategy.getSubject(result),
+//                    strategy.getContent(result)
+//            ));
 
-        }
+//            notificationEventOutPort.publish(
+//                    new NotificationRequestedEvent(
+//                            modifyReqMatchSubscription.getMemberNo(),
+//                            modifyReqMatchSubscription.getEmail(),
+//                            strategy.getSubject(result),
+//                            strategy.getContent(result)
+//                    )
+//            );
+//        }
 
         return MatchSubscriptionModResDto.from(selectedMatchSubscription);
     }
+
+    private void publishNotificationIfSatisfied(final MatchSubscription matchSubscription,final PlabMatchResDto dto){
+        final boolean isSatisfied = subscriptionNotificationValidator.isSatisfied(
+                matchSubscription.getNotiType(),
+                matchSubscription.getNotiValue(),
+                dto.getPlayerCnt(),
+                dto.getSubType()
+        );
+
+        if(!isSatisfied) return ;
+
+        PlabNotiMessage strategy = PlabNotiMessage.valueOf(matchSubscription.getNotiType().name());
+
+        notificationEventOutPort.publish(
+                new NotificationRequestedEvent(
+                        matchSubscription.getMemberNo(),
+                        matchSubscription.getEmail(),
+                        strategy.getSubject(dto),
+                        strategy.getContent(dto)
+                )
+        );
+    }
+
+
 }
