@@ -28,6 +28,7 @@ public class PlabMatchRegisterFacade implements PlabMatchRegisterFacadeUseCase {
 
         try {
             // 2. 실제 트랜잭션이 걸린 비즈니스 로직 호출
+            // 반드시 해당 메소드가 내부적으로 commit된 이후 finally절의 락 해제가 이루어져야 한다.
             return plabMatchUseCase.registerPlabMatch(plabMatchNo);
         } finally {
             // 3. 어떤 예외가 발생하더라도 락은 반드시 해제
