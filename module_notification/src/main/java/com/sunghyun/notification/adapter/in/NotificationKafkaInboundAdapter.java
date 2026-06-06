@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class NotificationKafkaInboundAdapter {
     private final NotificationUseCase notificationUseCase;
 
-    @KafkaListener(topics = "plab-noti",groupId = "plab-noti-group")
+    @KafkaListener(topics = "plab.noti.subscription",groupId = "plab-noti-group")
     public void handleNotificationEvent(final NotificationRequestEventDto dto, final Acknowledgment ack){
         log.info("[Kafka Adapter] 메시지 수신 완료. 토픽: plab-noti, 데이터:[{}]",dto);
 

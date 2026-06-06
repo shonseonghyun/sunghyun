@@ -31,3 +31,15 @@ spring:
 #      ddl-auto: create # 애플리케이션 시작 시 기존 스키마 삭제 후 생성, 애플리케이션 종료 시 스키마 삭제 X(데이터 남아있음)
       ddl-auto: none # 애플리케이션 시작 시 기존 스키마 삭제 후 생성, 애플리케이션 종료 시 스키마 삭제 X(데이터 남아있음)
       database-platform: org.hibernate.dialect.MySQL8Dialect
+
+logging:
+  level:
+    # 1. 💡 [핵심] 스프링 트랜잭션 매니저의 실제 참여/보류/생성 상세 로그 활성화
+#    org.springframework.transaction.support.AbstractPlatformTransactionManager: DEBUG
+    org.springframework.transaction: DEBUG
+
+    # 2. 스프링 핵심 트랜잭션 인터셉터 (현재 설정 유지 혹은 생략 가능)
+    org.springframework.transaction.interceptor: TRACE
+
+    # 3. 하이버네이트(JPA) 트랜잭션 로그
+    org.hibernate.orm.tx: DEBUG

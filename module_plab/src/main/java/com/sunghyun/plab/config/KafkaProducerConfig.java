@@ -29,6 +29,13 @@ public class KafkaProducerConfig {
 
         props.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
 
+        props.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG,true);
+        props.put(ProducerConfig.ACKS_CONFIG, "all");
+        props.put(ProducerConfig.RETRIES_CONFIG,2);
+        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 3000); // 3초
+        props.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 10000); // 30초
+        props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 3000);   // 각 요청당 10초
+
         return new DefaultKafkaProducerFactory<>(props);
     }
 
