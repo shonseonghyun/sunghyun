@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.scheduling.annotation.Async;
-//import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -64,31 +63,24 @@ public class NotificationEventSpringEventListener {
 
 
     @Async
-    //default, requries_new, 트랜잭션X 중 뭐가 맞을까?
-//    @Transactional //이건 어차피 안된다..
-//    @Transactional(propagation = Propagation.REQUIRES_NEW) //이게 있으면 메인스레드에서 DB 커넥션을 반납하지 않고, 비동기 스레드 진입..
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void sendEvent(final NotificationRequestedEvent notificationRequestedEvent){
-        log.info("AfterCommit 후 카프카 이벤트 발행 start. ID=[{}]", notificationRequestedEvent.getOutBoxNo());
-        String currentTransactionName = TransactionSynchronizationManager.getCurrentTransactionName();
-        log.info("현재 활성화된 트랜잭션 이름: [{}]", currentTransactionName);
+    public void sendEventV2(final NotificationRequestedEvent notificationRequestedEvent){
+        log.info("AfterCommit 후 카프카 이벤트 발행v2 start. ID=[{}]", notificationRequestedEvent.getOutBoxNo());
 
-        int activeConnections = hikariDataSource.getHikariPoolMXBean().getActiveConnections();
-        int idleConnections = hikariDataSource.getHikariPoolMXBean().getIdleConnections();
-        System.out.println("sendEvent...");
-        System.out.println("activeConnections = " + activeConnections);
-        System.out.println("idleConnections = " + idleConnections);
+        CompletableFuture<SendResult<String,Object>> future =  kafkaTemplate.send(topic,notificationRequestedEvent);
 
-        boolean isPublished = false;
+        // 비동기 콜백 등록
+        // 단, 메타 데이터 조회 시 발생한 에러는 잡히지 않기에 catch 구문으로 잡거나 ProducerListener를 통해 후처리해야 한다.
+        future.whenComplete((result,ex)->{
+            if(ex==null){
+                // 성공
+                outBoxCommandService.updateStatus(notificationRequestedEvent.getOutBoxNo(), true);
+            } else{
+                log.error("카프카 이벤트 발행 중 예외가 발생하여 아웃박스를 FAILED로 변경합니다. [{}]", notificationRequestedEvent.getOutBoxNo(), ex);
+                outBoxCommandService.updateStatus(notificationRequestedEvent.getOutBoxNo(),false);
+            }
+        });
 
-        try{
-            kafkaTemplate.send(topic, notificationRequestedEvent).get();
-            isPublished = true;
-        }catch (Exception e){
-            log.error("카프카 이벤트 발행 중 예외가 발생하여 아웃박스를 FAILED로 변경합니다. ID=[{}]", notificationRequestedEvent.getOutBoxNo(), e);
-        }
-
-        outBoxCommandService.updateStatus(notificationRequestedEvent.getOutBoxNo(), isPublished);
         log.info("아웃박스 테이블 상태 변경 최종 반영 완료");
     }
 }
