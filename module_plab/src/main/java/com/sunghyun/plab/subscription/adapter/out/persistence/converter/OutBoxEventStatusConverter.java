@@ -1,4 +1,4 @@
-package com.sunghyun.plab.subscription.domain.converter;
+package com.sunghyun.plab.subscription.adapter.out.persistence.converter;
 
 import com.sunghyun.plab.subscription.domain.enums.OutBoxEventStatus;
 import com.sunghyun.web.ErrorCode;

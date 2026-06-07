@@ -1,4 +1,4 @@
-package com.sunghyun.plab.subscription.adapter.out.external;
+package com.sunghyun.plab.subscription.adapter.out.external.feign;
 
 import com.sunghyun.feign.PlabMatchInternalOpenFeignClient;
 import com.sunghyun.plab.subscription.application.port.out.dto.PlabMatchResDto;

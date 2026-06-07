@@ -1,6 +1,6 @@
 package com.sunghyun.plab.subscription.adapter.out.persistence.entity;
 
-import com.sunghyun.plab.subscription.domain.converter.OutBoxEventStatusConverter;
+import com.sunghyun.plab.subscription.adapter.out.persistence.converter.OutBoxEventStatusConverter;
 import com.sunghyun.plab.subscription.domain.enums.OutBoxEventStatus;
 import com.sunghyun.plab.subscription.domain.model.MatchSubscriptionOutBox;
 import jakarta.persistence.*;

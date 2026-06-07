@@ -2,10 +2,9 @@ package com.sunghyun.plab.match.domain.model;
 
 import com.sunghyun.feign.dto.PlabMatchResponseDto;
 import com.sunghyun.plab.match.adapter.out.persistence.MatchStatusConverter;
-import com.sunghyun.plab.match.domain.enums.ActiveSubType;
 import com.sunghyun.plab.match.domain.enums.MatchStatus;
 import com.sunghyun.plab.match.domain.exception.InvalidPlabMatchException;
-import com.sunghyun.plab.subscription.adapter.out.persistence.NotiSettingConverter;
+import com.sunghyun.plab.subscription.adapter.out.persistence.converter.NotiSettingConverter;
 import com.sunghyun.plab.subscription.domain.enums.NotiSetting;
 import com.sunghyun.utils.ApiUtils;
 import com.sunghyun.web.ErrorCode;

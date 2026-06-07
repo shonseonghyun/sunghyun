@@ -1,4 +1,4 @@
-package com.sunghyun.plab.subscription.adapter.out.persistence;
+package com.sunghyun.plab.subscription.adapter.out.persistence.converter;
 
 import com.sunghyun.plab.subscription.domain.enums.NotiSetting;
 import jakarta.persistence.AttributeConverter;

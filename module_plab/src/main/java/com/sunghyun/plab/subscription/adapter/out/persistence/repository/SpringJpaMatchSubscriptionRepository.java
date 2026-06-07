@@ -1,5 +1,6 @@
-package com.sunghyun.plab.subscription.adapter.out.persistence;
+package com.sunghyun.plab.subscription.adapter.out.persistence.repository;
 
+import com.sunghyun.plab.subscription.adapter.out.persistence.entity.MatchSubscriptionEntity;
 import com.sunghyun.plab.subscription.domain.enums.NotiType;
 import org.springframework.data.jpa.repository.JpaRepository;
 

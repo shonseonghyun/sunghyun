@@ -1,4 +1,4 @@
-package com.sunghyun.plab.subscription.adapter.out.external;
+package com.sunghyun.plab.subscription.adapter.out.external.event;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,11 +9,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.scheduling.annotation.Async;
+//import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
@@ -22,11 +26,22 @@ public class NotificationEventSpringEventListener {
     private final KafkaTemplate<String,Object> kafkaTemplate;
     private final OutBoxCommandService outBoxCommandService;
 
+//    private final ThreadPoolTaskExecutor taskExecutor;
     private final ObjectMapper om;
     private final HikariDataSource hikariDataSource;
 
     @Value("${plab.kafka.topics.subscription-noti}")
     private String topic;
+
+//    private void logThreadPoolStatus(String location) {
+//        int activeCount = taskExecutor.getActiveCount();    // 현재 일하고 있는 스레드 수
+//        int poolSize = taskExecutor.getPoolSize();          // 현재 생성된 총 스레드 수
+//        int queueSize = taskExecutor.getThreadPoolExecutor().getQueue().size(); // 큐에서 대기 중인 작업 수
+//
+//        log.info("[{}] 📊 스레드풀 상태 -> Active: {}, PoolSize: {}, Queue: {}",
+//                location, activeCount, poolSize, queueSize);
+//    }
+
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void record(final NotificationRequestedEvent notificationRequestedEvent){

@@ -1,5 +1,6 @@
 package com.sunghyun.plab.subscription.adapter.out.persistence;
 
+import com.sunghyun.plab.subscription.adapter.out.persistence.entity.MatchSubscriptionEntity;
 import com.sunghyun.plab.subscription.domain.model.MatchSubscription;
 import org.springframework.stereotype.Component;
 

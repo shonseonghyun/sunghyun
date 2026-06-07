@@ -1,4 +1,4 @@
-package com.sunghyun.plab.subscription.adapter.out.external;
+package com.sunghyun.plab.subscription.adapter.out.external.event;
 
 import com.sunghyun.plab.subscription.application.port.out.dto.NotificationRequestedEvent;
 import com.sunghyun.plab.subscription.application.port.out.external.NotificationEventOutPort;

@@ -1,5 +1,6 @@
-package com.sunghyun.plab.subscription.adapter.out.persistence;
+package com.sunghyun.plab.subscription.adapter.out.persistence.repository;
 
+import com.sunghyun.plab.subscription.adapter.out.persistence.MatchSubscriptionMapper;
 import com.sunghyun.plab.subscription.application.port.out.persistence.MatchSubscriptionRepository;
 import com.sunghyun.plab.subscription.domain.enums.NotiType;
 import com.sunghyun.plab.subscription.domain.model.MatchSubscription;
