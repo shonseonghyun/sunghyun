@@ -36,6 +36,7 @@ public class KafkaProducerListener implements ProducerListener<String, Notificat
             RecordMetadata recordMetadata,
             Exception exception)
     {
+        // 참고로 트랜잭셔널이벤트리스너 비동기 실행하면서 생성된 독립적인 스레드에서 처리됨
         NotificationRequestedEvent event = producerRecord.value();
         final String outBoxNo = event.getOutBoxNo();
 

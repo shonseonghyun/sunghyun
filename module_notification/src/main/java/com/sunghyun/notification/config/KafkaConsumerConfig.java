@@ -1,19 +1,24 @@
 package com.sunghyun.notification.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.*;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Configuration
 public class KafkaConsumerConfig {
     @Value("${spring.kafka.bootstrap-server}")
@@ -42,8 +47,8 @@ public class KafkaConsumerConfig {
 
 
         //컨슈머 명칭
-        final String uniqueConsumerName = "plab-noti-consumer";
-        props.put(ConsumerConfig.CLIENT_ID_CONFIG, uniqueConsumerName);
+//        final String uniqueConsumerName = "plab-noti-consumer";
+//        props.put(ConsumerConfig.CLIENT_ID_CONFIG, uniqueConsumerName);
 
         // 초기 오프셋 읽기 위치 설정
 //        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -56,13 +61,51 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-//            DefaultErrorHandler dlqErrorHandler
-//            CommonErrorHandler commonErrorHandler
+            DefaultErrorHandler defaultErrorHandler
     ) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-//        factory.setCommonErrorHandler(commonErrorHandler);
+        factory.setCommonErrorHandler(defaultErrorHandler);
         return factory;
+    }
+
+//    @Bean
+//    public DefaultErrorHandler customCommonErrorHandler(){
+//        // 1초 간격으로 총 3회 시도(1회 요청 후 2회 재시도)
+//        FixedBackOff fixedBackOff = new FixedBackOff(1000L,2);
+//
+//        // FixedBackOff 설정에 맞춰 재시도 완료 후에도 실패 시 복구기 진입
+////        ConsumerRecordRecoverer recover = (record,e)->{
+////            final NotificationRequestEventDto dto = (NotificationRequestEventDto)record.value();
+////            log.error("[Error] topic = {}, key = {}, value = {}, error message = {}",
+////                    record.topic(), record.key(), record.value(), e.getMessage()
+////            );
+////        };
+//
+//        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate(producerFactory()));
+//
+//        DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer,fixedBackOff);
+//
+////        errorHandler.addNotRetryableExceptions(BaseException.class);
+//
+//        return errorHandler;
+//    }
+
+
+    // DLT(Dead Letter Topic)에 발행할 메시지 템플릿
+    @Bean
+    public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
+        return new KafkaTemplate<>(producerFactory);
+    }
+
+    // DLT(Dead Letter Topic)에 메시지 발행시 사용할 Producer 설정 세팅
+    @Bean
+    public ProducerFactory<String, Object> producerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        return new DefaultKafkaProducerFactory<>(config);
     }
 }
