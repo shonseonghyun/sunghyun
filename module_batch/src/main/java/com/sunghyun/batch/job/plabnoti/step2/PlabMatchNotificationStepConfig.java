@@ -5,6 +5,7 @@ import com.sunghyun.batch.dto.NotiHistoryDto;
 import com.sunghyun.batch.dto.NotificationTargetDto;
 import com.sunghyun.batch.job.plabnoti.step2.listener.TimeCheckListener;
 import com.sunghyun.notification.application.port.in.NotificationUseCase;
+import com.sunghyun.notification.application.port.in.dto.NotificationRequestEventDto;
 import com.sunghyun.plab.subscription.domain.enums.PlabNotiMessage;
 import com.sunghyun.plab.subscription.domain.service.SubscriptionNotificationValidator;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +34,9 @@ import java.util.Map;
 public class PlabMatchNotificationStepConfig {
     private final static int chunkSize = 10;
     private final SqlSessionFactory sqlSessionFactory;
-    private final NotificationUseCase notificationService;
     private final TimeCheckListener timeCheckListener;
     private final SubscriptionNotificationValidator subscriptionNotificationValidator;
+    private final NotificationUseCase notificationUseCase;
 
     @Bean
     public Step plabMatchNotificationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
@@ -103,9 +104,18 @@ public class PlabMatchNotificationStepConfig {
 
                 // 2. 전략(메시지 포맷) 결정
                 PlabNotiMessage strategy = PlabNotiMessage.valueOf(target.getNotiType().name());
+                final String subject = strategy.getSubject(target);
+                final String content = strategy.getContent(target);
 
-                // 3. 알림 서비스 호출(발송+ 이력 저장 한번에 일어남)
-                notificationService.doNoti(memberNo,email,strategy,target);
+                // 3. 알림 발송을 위한 카프카 메시지 발행
+                notificationUseCase.doNoti(
+                        new NotificationRequestEventDto(
+                                memberNo,
+                                email,
+                                subject,
+                                content
+                        )
+                );
             }
 
             log.info(">>> [Writer] Chunk 처리 완료");
