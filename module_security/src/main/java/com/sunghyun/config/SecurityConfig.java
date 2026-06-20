@@ -1,0 +1,77 @@
+package com.sunghyun.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sunghyun.filter.CustomAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
+
+/*
+    스프링 시큐리티
+    Spring 기반의 애플리케이션 보안(인증/인가)을 담당하는 프레임워크
+    - 인증(Authentication): 사용자가 누구인지 확인하는 절차
+    - 인가(Authorization) : 인증 완료된 사용자가 요청한 자원(url)에 접근한지 확인하는 절차
+*/
+@Configuration
+@RequiredArgsConstructor
+public class SecurityConfig {
+    private final ObjectMapper om;
+
+    private final AuthenticationConfiguration authenticationConfiguration;
+//    private final UsernamePasswordAuthenticationFilter customAuthenticationFilter;
+
+    @Bean
+    public AuthenticationManager authenticationManager() throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+////                 1. 모든 요청에 대해 인증(로그인)을 요구하도록 설정
+//                .authorizeHttpRequests(auth -> auth
+//                        .anyRequest().authenticated()
+//                )
+////                 2. 🌟 시큐리티 기본 폼 로그인 창을 활성화! (이게 있어야 창이 뜹니다)
+//                .formLogin(AbstractAuthenticationFilterConfigurer::permitAll) // 🔥 [핵심] 로그인 화면과 로그인 처리 URL은 인증 없이 통과하도록 허용!
+//                .sessionManagement(
+//                        httpSecuritySessionManagementConfigurer ->
+//                                httpSecuritySessionManagementConfigurer
+//                                        .maximumSessions(2)
+//                                        .maxSessionsPreventsLogin(false)
+//                                        .expiredUrl("/test")
+//                )
+                // 1. 🌟 [핵심] 인가(Authorization) 정책 명시
+                .authorizeHttpRequests(auth -> auth
+                        // 회원가입, 로그인 등 인증이 필요 없는 API는 무조건 permitAll()로 열어줘야 합니다.
+                        .requestMatchers(
+                                "/member/login",
+                                "/member/register",
+                                "/member/valid-id/**"
+                        ).permitAll()
+                        // 그 외의 모든 API 요청은 인증(JWT 등)을 거쳐야만 통과시킵니다.
+                        .anyRequest().authenticated()
+                )
+                .formLogin(AbstractHttpConfigurer::disable) // 시큐리티에서 제공하는 HTTP 기반의 폼 로그인 기반 인증방식 -> 비활성화
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .csrf(CsrfConfigurer::disable) // Rest Api 방식을 사용하기에 비활성화 처리
+                .sessionManagement(AbstractHttpConfigurer::disable) // JWT 통해 세션 관리 할 것이기에 비활성화
+//                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // https://stackoverflow.com/questions/49081493/what-is-difference-between-disabled-and-stateless-session-management
+                .addFilter(customAuthenticationFilter())
+                .build();
+    }
+
+    @Bean
+    public CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(om);
+        customAuthenticationFilter.setAuthenticationManager(authenticationManager());
+        customAuthenticationFilter.setFilterProcessesUrl("/member/login");
+        return customAuthenticationFilter;
+    }
+}

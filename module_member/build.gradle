@@ -25,6 +25,7 @@ dependencies {
 
     //모듈 간 의존성
     implementation project(':common')
+    implementation project(':module_security')
 }
 
 bootJar{ enabled = true }
