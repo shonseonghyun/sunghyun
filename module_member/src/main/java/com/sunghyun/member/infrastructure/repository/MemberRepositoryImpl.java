@@ -1,13 +1,17 @@
 package com.sunghyun.member.infrastructure.repository;
 
+import com.sunghyun.config.SecurityUserDetail;
+import com.sunghyun.config.SecurityUserLoader;
 import com.sunghyun.member.domain.model.Member;
 import com.sunghyun.member.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
-public class MemberRepositoryImpl implements MemberRepository {
+public class MemberRepositoryImpl implements MemberRepository, SecurityUserLoader {
     private final SpringJpaMemberRepository springJpaMemberRepository;
 
     @Override
@@ -34,5 +38,21 @@ public class MemberRepositoryImpl implements MemberRepository {
     @Override
     public boolean isExistMemberById(final String id) {
         return springJpaMemberRepository.findMemberById(id).isPresent();
+    }
+
+    @Override
+    public Optional<SecurityUserDetail> loadUserById(final String id) {
+        return springJpaMemberRepository.findMemberById(id)
+                .map(member-> new SecurityUserDetail() {
+                    @Override
+                    public String getId() {
+                        return member.getId();
+                    }
+
+                    @Override
+                    public String getPassWord() {
+                        return member.getPwd();
+                    }
+                });
     }
 }

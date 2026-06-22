@@ -1,25 +1,30 @@
 package com.sunghyun.member.presentation;
 
+import com.sunghyun.dto.LoginReqDto;
 import com.sunghyun.member.application.MemberService;
 import com.sunghyun.member.application.dto.req.MemberModifyReqDto;
 import com.sunghyun.member.application.dto.req.MemberRegisterReqDto;
 import com.sunghyun.member.application.dto.res.MemberResDto;
 import com.sunghyun.member.application.dto.res.MemberValidIdResDto;
+import com.sunghyun.service.AuthService;
 import com.sunghyun.web.ErrorCode;
 import com.sunghyun.web.GlobalResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Validated
 @RestController
 @RequestMapping("/member")
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;
+    private final AuthService authService;
 
     @GetMapping("/valid-id/{id}")
     public GlobalResponse<MemberValidIdResDto> validMemberId(
@@ -33,6 +38,13 @@ public class MemberController {
         MemberValidIdResDto result = memberService.validMemberId(id);
         return GlobalResponse.of(ErrorCode.S00,result);
     }
+
+    @PostMapping("/login")
+    public GlobalResponse login(@RequestBody final LoginReqDto loginReqDto){
+        authService.login(loginReqDto.getId(),loginReqDto.getPwd());
+        return null;
+    }
+
 
     @PostMapping("/register")
     public GlobalResponse<MemberResDto> registerMember(
@@ -61,6 +73,7 @@ public class MemberController {
         final MemberResDto result = memberService.modifyMember(dto);
         return GlobalResponse.of(ErrorCode.S00,result);
     }
+
 
 
 }

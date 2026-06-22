@@ -1,12 +1,11 @@
 package com.sunghyun.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sunghyun.filter.CustomAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
@@ -21,14 +20,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final ObjectMapper om;
-
-    private final AuthenticationConfiguration authenticationConfiguration;
-//    private final UsernamePasswordAuthenticationFilter customAuthenticationFilter;
+    private final AuthenticationProvider authenticationProvider;
 
     @Bean
-    public AuthenticationManager authenticationManager() throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager() {
+        return new ProviderManager(authenticationProvider);
     }
 
     @Bean
@@ -63,15 +59,6 @@ public class SecurityConfig {
                 .csrf(CsrfConfigurer::disable) // Rest Api 방식을 사용하기에 비활성화 처리
                 .sessionManagement(AbstractHttpConfigurer::disable) // JWT 통해 세션 관리 할 것이기에 비활성화
 //                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // https://stackoverflow.com/questions/49081493/what-is-difference-between-disabled-and-stateless-session-management
-                .addFilter(customAuthenticationFilter())
                 .build();
-    }
-
-    @Bean
-    public CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
-        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(om);
-        customAuthenticationFilter.setAuthenticationManager(authenticationManager());
-        customAuthenticationFilter.setFilterProcessesUrl("/member/login");
-        return customAuthenticationFilter;
     }
 }
