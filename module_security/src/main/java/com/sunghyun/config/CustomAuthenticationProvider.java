@@ -1,9 +1,9 @@
 package com.sunghyun.config;
 
+import com.sunghyun.web.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -26,13 +26,13 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         final SecurityUserDetail securityUserDetail = securityUserLoader.loadUserById(id)
                 .orElseThrow(()-> {
                     log.error("존재하지 않는 아이디입니다.");
-                    return new BadCredentialsException("SecurityUserLoader returned null");
+                    return new MemberIdNotFoundException(ErrorCode.M00);
                 });
 
         // 2. 비밀번호 일치 여부 검증
         if(!securityUserDetail.getPassWord().equals(pwd)){
             log.error("비밀번호가 일치하지 않습니다.");
-            throw new BadCredentialsException("Password is wrong!");
+            throw new PasswordMismatchException(ErrorCode.M05);
         }
 
         // 인증 토큰 생성
