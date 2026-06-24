@@ -94,10 +94,12 @@ public class GlobalExceptionHandler {
 
     /*
     * case1. 요청바디(RequestBody) 자체가 누락된 경우
+    * case2. Enum형식이 올바르지 않은 경우
     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public GlobalResponse handleHttpMessageNotReadableException(HttpMessageNotReadableException e){
+
         return GlobalResponse.of(ErrorCode.F00);
     }
 
