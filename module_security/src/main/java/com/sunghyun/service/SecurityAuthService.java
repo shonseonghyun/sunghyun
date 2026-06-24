@@ -1,9 +1,15 @@
 package com.sunghyun.service;
 
+import com.sunghyun.config.JwtProvider;
+import com.sunghyun.config.MemberLoginResDto;
+import com.sunghyun.config.SecurityUserDetail;
+import com.sunghyun.dto.TokenReissueReqDto;
+import com.sunghyun.dto.TokenResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -11,10 +17,30 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SecurityAuthService implements AuthService{
     private final AuthenticationManager authenticationManager;
+    private final JwtProvider jwtProvider;
 
     @Override
-    public void login(final String id,final String pwd) {
-        UsernamePasswordAuthenticationToken authRequest = UsernamePasswordAuthenticationToken.unauthenticated(id, pwd);
-        authenticationManager.authenticate(authRequest);
+    public MemberLoginResDto authenticate(final String id,final String pwd) {
+        final UsernamePasswordAuthenticationToken authRequest = UsernamePasswordAuthenticationToken.unauthenticated(id, pwd);
+
+        final Authentication authentication = authenticationManager.authenticate(authRequest);
+        final SecurityUserDetail userDetail = (SecurityUserDetail) authentication.getPrincipal();
+
+        //JWT 토큰 생성 후 발급
+        final TokenResponseDto tokenResponseDto = jwtProvider.createToken(userDetail);
+
+        return MemberLoginResDto.builder()
+                .memberNo(userDetail.getMemberNo())
+                .name(userDetail.getName())
+                .id(userDetail.getId())
+                .tokens(tokenResponseDto)
+                .build()
+                ;
+    }
+
+    @Override
+    public void reissueAccessToken(TokenReissueReqDto tokenReissueReqDto) {
+//        jwtProvider.reissueAcessToken();
+
     }
 }

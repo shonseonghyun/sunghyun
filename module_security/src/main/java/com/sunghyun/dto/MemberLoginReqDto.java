@@ -10,7 +10,7 @@ import lombok.ToString;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginReqDto {
+public class MemberLoginReqDto {
     private String id;
     private String pwd;
 }

@@ -1,6 +1,8 @@
 package com.sunghyun.member.presentation;
 
-import com.sunghyun.dto.LoginReqDto;
+import com.sunghyun.config.MemberLoginResDto;
+import com.sunghyun.dto.MemberLoginReqDto;
+import com.sunghyun.dto.TokenReissueReqDto;
 import com.sunghyun.member.application.MemberService;
 import com.sunghyun.member.application.dto.req.MemberModifyReqDto;
 import com.sunghyun.member.application.dto.req.MemberRegisterReqDto;
@@ -28,9 +30,8 @@ public class MemberController {
 
     @GetMapping("/valid-id/{id}")
     public GlobalResponse<MemberValidIdResDto> validMemberId(
-            @PathVariable("id")
-            @NotBlank(message = "{common.notblank}")
-            @Size(min = 6, message = "{member.id.size}")
+            @PathVariable
+            @NotBlank(message = "{common.notblank}") @Size(min = 6, message = "{member.id.size}")
             final String id
     )
     {
@@ -40,9 +41,15 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    public GlobalResponse login(@RequestBody final LoginReqDto loginReqDto){
-        authService.login(loginReqDto.getId(),loginReqDto.getPwd());
-        return null;
+    public GlobalResponse login(@RequestBody final MemberLoginReqDto memberLoginReqDto){
+        MemberLoginResDto result = authService.authenticate(memberLoginReqDto.getId(), memberLoginReqDto.getPwd());
+        return GlobalResponse.of(ErrorCode.S00,result);
+    }
+
+    @GetMapping("/reissue")
+    public GlobalResponse reissueAccessToken(@RequestBody final TokenReissueReqDto tokenReissueReqDto){
+        authService.reissueAccessToken(tokenReissueReqDto);
+        return GlobalResponse.of(ErrorCode.S00);
     }
 
 
@@ -58,7 +65,7 @@ public class MemberController {
 
     @GetMapping("/{memberNo}")
     public GlobalResponse<MemberResDto> getMember(
-            @PathVariable("memberNo") final Long memberNo
+            @PathVariable final Long memberNo
     )
     {
         final MemberResDto result = memberService.getMemberByMemberNo(memberNo);
@@ -73,7 +80,4 @@ public class MemberController {
         final MemberResDto result = memberService.modifyMember(dto);
         return GlobalResponse.of(ErrorCode.S00,result);
     }
-
-
-
 }
