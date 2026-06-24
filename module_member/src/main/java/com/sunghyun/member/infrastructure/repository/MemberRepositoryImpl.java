@@ -45,6 +45,16 @@ public class MemberRepositoryImpl implements MemberRepository, SecurityUserLoade
         return springJpaMemberRepository.findMemberById(id)
                 .map(member-> new SecurityUserDetail() {
                     @Override
+                    public Long getMemberNo() {
+                        return member.getMemberNo();
+                    }
+
+                    @Override
+                    public String getName() {
+                        return member.getName();
+                    }
+
+                    @Override
                     public String getId() {
                         return member.getId();
                     }
