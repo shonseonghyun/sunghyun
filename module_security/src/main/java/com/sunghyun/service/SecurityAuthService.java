@@ -2,7 +2,7 @@ package com.sunghyun.service;
 
 import com.sunghyun.config.JwtProvider;
 import com.sunghyun.config.MemberLoginResDto;
-import com.sunghyun.config.SecurityUserDetail;
+import com.sunghyun.config.SecurityUserDetails;
 import com.sunghyun.dto.TokenReissueReqDto;
 import com.sunghyun.dto.TokenResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class SecurityAuthService implements AuthService{
         final UsernamePasswordAuthenticationToken authRequest = UsernamePasswordAuthenticationToken.unauthenticated(id, pwd);
 
         final Authentication authentication = authenticationManager.authenticate(authRequest);
-        final SecurityUserDetail userDetail = (SecurityUserDetail) authentication.getPrincipal();
+        final SecurityUserDetails userDetail = (SecurityUserDetails) authentication.getPrincipal();
 
         //JWT 토큰 생성 후 발급
         final TokenResponseDto tokenResponseDto = jwtProvider.createToken(userDetail);
@@ -32,7 +32,7 @@ public class SecurityAuthService implements AuthService{
         return MemberLoginResDto.builder()
                 .memberNo(userDetail.getMemberNo())
                 .name(userDetail.getName())
-                .id(userDetail.getId())
+                .id(userDetail.getUsername())
                 .tokens(tokenResponseDto)
                 .build()
                 ;

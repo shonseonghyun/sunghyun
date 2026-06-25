@@ -5,6 +5,8 @@ import com.sunghyun.member.domain.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity(name ="members") //member는 mysql 예약어이므로 s 붙임
 @Builder
 @AllArgsConstructor
@@ -42,6 +44,14 @@ public class Member {
     @Column
     @UpdateAble
     private Gender gender;
+
+    @OneToMany(
+            cascade = {
+                    CascadeType.PERSIST, //Member save 시 저장 확인 완료
+            }
+    )
+    @JoinColumn(name="member_no")
+    private List<MemberRole> roles;
 
     //사진
 //    private String photo;

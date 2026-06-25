@@ -1,7 +1,7 @@
 package com.sunghyun.member.infrastructure.repository;
 
-import com.sunghyun.config.SecurityUserDetail;
 import com.sunghyun.config.SecurityUserLoader;
+import com.sunghyun.dto.SecurityMemberDto;
 import com.sunghyun.member.domain.model.Member;
 import com.sunghyun.member.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,28 +41,18 @@ public class MemberRepositoryImpl implements MemberRepository, SecurityUserLoade
     }
 
     @Override
-    public Optional<SecurityUserDetail> loadUserById(final String id) {
+    public Optional<SecurityMemberDto> loadUserById(final String id) {
         return springJpaMemberRepository.findMemberById(id)
-                .map(member-> new SecurityUserDetail() {
-                    @Override
-                    public Long getMemberNo() {
-                        return member.getMemberNo();
-                    }
+                .map(member-> SecurityMemberDto.builder()
+                        .memberNo(member.getMemberNo())
+                        .id(member.getId())
+                        .name(member.getName())
+                        .pwd(member.getPwd())
+                        .roles(
+                                member.getRoles().stream().map(r -> r.getRole().name()).toList()
+                        )
+                        .build()
+                );
 
-                    @Override
-                    public String getName() {
-                        return member.getName();
-                    }
-
-                    @Override
-                    public String getId() {
-                        return member.getId();
-                    }
-
-                    @Override
-                    public String getPassWord() {
-                        return member.getPwd();
-                    }
-                });
     }
 }

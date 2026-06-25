@@ -1,16 +1,25 @@
 package com.sunghyun.config;
 
 import com.sunghyun.dto.TokenResponseDto;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -32,12 +41,12 @@ public class JwtProvider {
     /**
      * 인증 성공 정보를 받아 JWT Access Token을 발급합니다.
      */
-    public TokenResponseDto createToken(SecurityUserDetail securityUserDetail) {
-        final String accessToken = createAccessToken(securityUserDetail);
-        final String refreshToken = createRefreshToken(securityUserDetail);
+    public TokenResponseDto createToken(SecurityUserDetails securityUserDetails) {
+        final String accessToken = createAccessToken(securityUserDetails);
+        final String refreshToken = createRefreshToken(securityUserDetails);
 
 
-        log.info("JWT 토큰 세트(Access & Refresh) 발급 완료 - User: {}", securityUserDetail.getId());
+        log.info("JWT 토큰 세트(Access & Refresh) 발급 완료 - User: {}", securityUserDetails.getUsername());
 
         // 5. 공통 DTO 규격으로 래핑하여 리턴
         return TokenResponseDto.builder()
@@ -46,14 +55,14 @@ public class JwtProvider {
                 .build();
     }
 
-    private String  createAccessToken(SecurityUserDetail securityUserDetail){
+    private String  createAccessToken(SecurityUserDetails securityUserDetails){
         // 1. 유저 식별자(ID) 추출
-        final String id = securityUserDetail.getName();
+        final String id = securityUserDetails.getUsername();
 
         // 2. 권한 목록을 콤마(,) 기준으로 파싱하여 문자열로 가공 (ex: "ROLE_USER,ROLE_ADMIN")
-//        String authorities = authentication.getAuthorities().stream()
-//                .map(GrantedAuthority::getAuthority)
-//                .collect(Collectors.joining(","));
+        String authorities = securityUserDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
 
         long now = System.currentTimeMillis();
         Date accessTokenExpiresIn = new Date(now + accessTokenExpirationTime);
@@ -64,7 +73,7 @@ public class JwtProvider {
         // 4. JJWT 0.12.x 빌더 패턴 적용하여 토큰 생성
         String accessToken = Jwts.builder()
                 .subject(id)                    // 토큰 주인 명시 (sub)
-//                .claim("auth", authorities)           // 커스텀 클레임으로 권한 정보 주입
+                .claim("authorities", authorities)           // 커스텀 클레임으로 권한 정보 주입
                 .issuedAt(new Date(now))              // 발행 시간 (iat)
                 .expiration(accessTokenExpiresIn)     // 만료 시간 (exp) -> 기존 setExpiration에서 변경됨
                 .signWith(key)                        // S알고리즘을 생략해도 key 규격을 보고 안전한 알고리즘(HS256 등)을 자동 선택합니다.
@@ -73,8 +82,8 @@ public class JwtProvider {
         return accessToken;
     }
 
-    private String createRefreshToken(SecurityUserDetail securityUserDetail){
-        final String id = securityUserDetail.getName();
+    private String createRefreshToken(SecurityUserDetails securityUserDetails){
+        final String id = securityUserDetails.getUsername();
 
         long now = System.currentTimeMillis();
         Date refreshTokenExpiresIn = new Date(now + refreshTokenExpirationTime);
@@ -87,6 +96,56 @@ public class JwtProvider {
                 .expiration(refreshTokenExpiresIn)
                 .signWith(key)
                 .compact();
+    }
+
+    public boolean validate(final String token) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+            Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token);
+            return true;
+        } catch (io.jsonwebtoken.security.SecurityException | io.jsonwebtoken.MalformedJwtException e) {
+            log.error("잘못된 JWT 서명 또는 손상된 토큰입니다.");
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.error("만료된 JWT 토큰입니다. (Expired)");
+        } catch (io.jsonwebtoken.UnsupportedJwtException e) {
+            log.error("지원되지 않는 형식의 JWT 토큰입니다.");
+        } catch (IllegalArgumentException e) {
+            log.error("JWT 토큰의 클레임이 비어있거나 올바르지 않습니다.");
+        }
+        return false;
+    }
+
+    public Authentication getAuthentication(final String token){
+        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+
+        // 1. 토큰 내부의 클레임(Claims) 추출
+        Claims claims = Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        // 2. 클레임에서 "authorities"에 문자열로 압축해 둔 권한 목록 꺼내기 (ex: "ROLE_USER,ROLE_ADMIN")
+        String authoritiesClaim = claims.get("authorities", String.class);
+
+        if (authoritiesClaim == null || authoritiesClaim.isEmpty()) {
+            throw new IllegalArgumentException("토큰에 권한 정보가 유출되었거나 존재하지 않습니다.");
+        }
+
+        // 3. 콤마(,) 기준 문자열을 시큐리티가 이해하는 GrantedAuthority 컬렉션으로 복구
+        List<SimpleGrantedAuthority> authorities = Arrays.stream(authoritiesClaim.split(","))
+                .map(SimpleGrantedAuthority::new)
+                .toList();
+
+        // 4. Principal 자리에 넣을 유저 식별자(ID)
+        final String id = claims.getSubject();
+
+        // 5. 시큐리티 표준 인증 객체 생성 (비밀번호는 이미 토큰 검증이 끝나서 안 담아도 되므로 null 처리)
+        // ⚠️ 여기서 주의: 세 번째 인자인 authorities까지 넘겨줘야 시큐리티가 '인증 완료(authenticated=true)' 상태로 판단합니다.
+        return new UsernamePasswordAuthenticationToken(id, null, authorities);
     }
 
 }

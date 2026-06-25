@@ -3,9 +3,14 @@ package com.sunghyun.member.application.dto.req;
 import com.sunghyun.annotation.DtoOnly;
 import com.sunghyun.annotation.NotBlankWithMsg;
 import com.sunghyun.member.domain.enums.Gender;
+import com.sunghyun.member.domain.enums.Role;
 import com.sunghyun.member.domain.model.Member;
+import com.sunghyun.member.domain.model.MemberRole;
 import jakarta.validation.constraints.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder
 @Getter
@@ -47,6 +52,15 @@ public class MemberRegisterReqDto {
 //    private String photo;
 
     public Member toDomain() {
+        List<MemberRole> defaultRoles = new ArrayList<>();
+
+        defaultRoles.add(
+                MemberRole
+                        .builder()
+                    .role(Role.USER)
+                    .build()
+        );
+
         return Member.builder()
                 .id(this.id)
                 .pwd(this.pwd) // 나중에 암호화 로직(passwordEncoder.encode)이 들어갈 자리입니다.
@@ -55,6 +69,7 @@ public class MemberRegisterReqDto {
                 .tel(this.tel)
                 .birthDt(this.birthDt)
                 .gender(this.gender)
+                .roles(defaultRoles)
                 .build();
     }
 }

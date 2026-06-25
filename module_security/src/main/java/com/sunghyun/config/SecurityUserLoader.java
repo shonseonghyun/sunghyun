@@ -1,7 +1,9 @@
 package com.sunghyun.config;
 
+import com.sunghyun.dto.SecurityMemberDto;
+
 import java.util.Optional;
 
 public interface SecurityUserLoader {
-    Optional<SecurityUserDetail> loadUserById(final String id);
+    Optional<SecurityMemberDto> loadUserById(final String id);
 }
