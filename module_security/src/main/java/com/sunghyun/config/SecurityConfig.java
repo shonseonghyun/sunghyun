@@ -1,5 +1,7 @@
 package com.sunghyun.config;
 
+import com.sunghyun.config.authorize.SecurityRequestMatcherHelper;
+import com.sunghyun.filter.jwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /*
     스프링 시큐리티
@@ -21,6 +24,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
+    private final JwtProvider jwtProvider;
+    private final SecurityRequestMatcherHelper securityRequestMatcherHelper;
 
     @Bean
     public AuthenticationManager authenticationManager() {
@@ -43,22 +48,13 @@ public class SecurityConfig {
 //                                        .maxSessionsPreventsLogin(false)
 //                                        .expiredUrl("/test")
 //                )
-                // 1. 🌟 [핵심] 인가(Authorization) 정책 명시
-                .authorizeHttpRequests(auth -> auth
-                        // 회원가입, 로그인 등 인증이 필요 없는 API는 무조건 permitAll()로 열어줘야 합니다.
-                        .requestMatchers(
-                                "/member/login",
-                                "/member/register",
-                                "/member/valid-id/**"
-                        ).permitAll()
-                        // 그 외의 모든 API 요청은 인증(JWT 등)을 거쳐야만 통과시킵니다.
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(securityRequestMatcherHelper::setAuthorizedRequest)
                 .formLogin(AbstractHttpConfigurer::disable) // 시큐리티에서 제공하는 HTTP 기반의 폼 로그인 기반 인증방식 -> 비활성화
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(CsrfConfigurer::disable) // Rest Api 방식을 사용하기에 비활성화 처리
                 .sessionManagement(AbstractHttpConfigurer::disable) // JWT 통해 세션 관리 할 것이기에 비활성화
 //                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // https://stackoverflow.com/questions/49081493/what-is-difference-between-disabled-and-stateless-session-management
+                .addFilterBefore(new jwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

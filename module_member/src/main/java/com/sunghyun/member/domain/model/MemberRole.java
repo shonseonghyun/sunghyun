@@ -1,6 +1,6 @@
 package com.sunghyun.member.domain.model;
 
-import com.sunghyun.member.domain.enums.Role;
+import com.sunghyun.config.authorize.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

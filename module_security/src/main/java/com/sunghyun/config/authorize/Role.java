@@ -1,4 +1,4 @@
-package com.sunghyun.member.domain.enums;
+package com.sunghyun.config.authorize;
 
 public enum Role {
     ADMIN,
