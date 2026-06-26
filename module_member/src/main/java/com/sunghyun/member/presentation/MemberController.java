@@ -1,14 +1,13 @@
 package com.sunghyun.member.presentation;
 
-import com.sunghyun.config.MemberLoginResDto;
-import com.sunghyun.dto.MemberLoginReqDto;
-import com.sunghyun.dto.TokenReissueReqDto;
 import com.sunghyun.member.application.MemberService;
+import com.sunghyun.member.application.AuthService;
+import com.sunghyun.member.application.dto.req.MemberLoginReqDto;
+import com.sunghyun.member.application.dto.req.MemberLoginResDto;
 import com.sunghyun.member.application.dto.req.MemberModifyReqDto;
 import com.sunghyun.member.application.dto.req.MemberRegisterReqDto;
 import com.sunghyun.member.application.dto.res.MemberResDto;
 import com.sunghyun.member.application.dto.res.MemberValidIdResDto;
-import com.sunghyun.service.AuthService;
 import com.sunghyun.web.ErrorCode;
 import com.sunghyun.web.GlobalResponse;
 import jakarta.validation.Valid;
@@ -42,15 +41,15 @@ public class MemberController {
 
     @PostMapping("/login")
     public GlobalResponse login(@RequestBody final MemberLoginReqDto memberLoginReqDto){
-        MemberLoginResDto result = authService.authenticate(memberLoginReqDto.getId(), memberLoginReqDto.getPwd());
+        MemberLoginResDto result = authService.login(memberLoginReqDto.getId(), memberLoginReqDto.getPwd());
         return GlobalResponse.of(ErrorCode.S00,result);
     }
 
-    @GetMapping("/reissue")
-    public GlobalResponse reissueAccessToken(@RequestBody final TokenReissueReqDto tokenReissueReqDto){
-        authService.reissueAccessToken(tokenReissueReqDto);
-        return GlobalResponse.of(ErrorCode.S00);
-    }
+//    @GetMapping("/reissue")
+//    public GlobalResponse reissueAccessToken(@RequestBody final TokenReissueReqDto tokenReissueReqDto){
+//        authService.reissueAccessToken(tokenReissueReqDto);
+//        return GlobalResponse.of(ErrorCode.S00);
+//    }
 
 
     @PostMapping("/register")

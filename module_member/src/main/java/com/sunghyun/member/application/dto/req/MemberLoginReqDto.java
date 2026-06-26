@@ -1,12 +1,9 @@
-package com.sunghyun.dto;
-
+package com.sunghyun.member.application.dto.req;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
-@ToString
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor

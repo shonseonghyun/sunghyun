@@ -1,6 +1,7 @@
 package com.sunghyun.config;
 
-import com.sunghyun.dto.TokenResponseDto;
+import com.sunghyun.dto.TokenReqDto;
+import com.sunghyun.dto.TokenResDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -9,14 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,28 +40,32 @@ public class JwtProvider {
     /**
      * 인증 성공 정보를 받아 JWT Access Token을 발급합니다.
      */
-    public TokenResponseDto createToken(SecurityUserDetails securityUserDetails) {
-        final String accessToken = createAccessToken(securityUserDetails);
-        final String refreshToken = createRefreshToken(securityUserDetails);
+    public TokenResDto generateToken(TokenReqDto tokenReqDto) {
+        final String accessToken = generateAccessToken(tokenReqDto);
+        final String refreshToken = generateRefreshToken(tokenReqDto);
 
 
-        log.info("JWT 토큰 세트(Access & Refresh) 발급 완료 - User: {}", securityUserDetails.getUsername());
+        log.info("JWT 토큰 세트(Access & Refresh) 발급 완료 - Member Id: {}", tokenReqDto.getId());
 
         // 5. 공통 DTO 규격으로 래핑하여 리턴
-        return TokenResponseDto.builder()
+        return TokenResDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
     }
 
-    private String  createAccessToken(SecurityUserDetails securityUserDetails){
+    private String  generateAccessToken(TokenReqDto tokenReqDto){
         // 1. 유저 식별자(ID) 추출
-        final String id = securityUserDetails.getUsername();
+        final String id = tokenReqDto.getId();
 
         // 2. 권한 목록을 콤마(,) 기준으로 파싱하여 문자열로 가공 (ex: "ROLE_USER,ROLE_ADMIN")
-        String authorities = securityUserDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+//        String authorities = securityUserDetails.getAuthorities().stream()
+//                .map(GrantedAuthority::getAuthority)
+//                .collect(Collectors.joining(","));
+        String roles = tokenReqDto.getRoles().stream()
+                .map(role -> "ROLE_"+role)
+                .collect(Collectors.joining(","))
+                ;
 
         long now = System.currentTimeMillis();
         Date accessTokenExpiresIn = new Date(now + accessTokenExpirationTime);
@@ -73,7 +76,7 @@ public class JwtProvider {
         // 4. JJWT 0.12.x 빌더 패턴 적용하여 토큰 생성
         String accessToken = Jwts.builder()
                 .subject(id)                    // 토큰 주인 명시 (sub)
-                .claim("authorities", authorities)           // 커스텀 클레임으로 권한 정보 주입
+                .claim("roles", roles)           // 커스텀 클레임으로 권한 정보 주입
                 .issuedAt(new Date(now))              // 발행 시간 (iat)
                 .expiration(accessTokenExpiresIn)     // 만료 시간 (exp) -> 기존 setExpiration에서 변경됨
                 .signWith(key)                        // S알고리즘을 생략해도 key 규격을 보고 안전한 알고리즘(HS256 등)을 자동 선택합니다.
@@ -82,8 +85,8 @@ public class JwtProvider {
         return accessToken;
     }
 
-    private String createRefreshToken(SecurityUserDetails securityUserDetails){
-        final String id = securityUserDetails.getUsername();
+    private String generateRefreshToken(TokenReqDto tokenReqDto){
+        final String id = tokenReqDto.getId();
 
         long now = System.currentTimeMillis();
         Date refreshTokenExpiresIn = new Date(now + refreshTokenExpirationTime);
@@ -128,15 +131,15 @@ public class JwtProvider {
                 .parseSignedClaims(token)
                 .getPayload();
 
-        // 2. 클레임에서 "authorities"에 문자열로 압축해 둔 권한 목록 꺼내기 (ex: "ROLE_USER,ROLE_ADMIN")
-        String authoritiesClaim = claims.get("authorities", String.class);
+        // 2. 클레임에서 "roles"에 문자열로 압축해 둔 권한 목록 꺼내기 (ex: "ROLE_USER,ROLE_ADMIN")
+        String authoritiesClaim = claims.get("roles", String.class);
 
         if (authoritiesClaim == null || authoritiesClaim.isEmpty()) {
             throw new IllegalArgumentException("토큰에 권한 정보가 유출되었거나 존재하지 않습니다.");
         }
 
         // 3. 콤마(,) 기준 문자열을 시큐리티가 이해하는 GrantedAuthority 컬렉션으로 복구
-        List<SimpleGrantedAuthority> authorities = Arrays.stream(authoritiesClaim.split(","))
+        List<SimpleGrantedAuthority> roles = Arrays.stream(authoritiesClaim.split(","))
                 .map(SimpleGrantedAuthority::new)
                 .toList();
 
@@ -145,7 +148,6 @@ public class JwtProvider {
 
         // 5. 시큐리티 표준 인증 객체 생성 (비밀번호는 이미 토큰 검증이 끝나서 안 담아도 되므로 null 처리)
         // ⚠️ 여기서 주의: 세 번째 인자인 authorities까지 넘겨줘야 시큐리티가 '인증 완료(authenticated=true)' 상태로 판단합니다.
-        return new UsernamePasswordAuthenticationToken(id, null, authorities);
+        return new UsernamePasswordAuthenticationToken(id, null, roles);
     }
-
 }

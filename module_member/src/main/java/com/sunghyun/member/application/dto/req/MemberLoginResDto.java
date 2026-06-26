@@ -1,6 +1,6 @@
-package com.sunghyun.config;
+package com.sunghyun.member.application.dto.req;
 
-import com.sunghyun.dto.TokenResponseDto;
+import com.sunghyun.dto.TokenResDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,5 +13,5 @@ public class MemberLoginResDto {
     private String id;
     private String name;
 
-    private TokenResponseDto tokens;
+    private TokenResDto tokens;
 }
