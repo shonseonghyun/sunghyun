@@ -2,6 +2,9 @@ package com.sunghyun.member.domain.model;
 
 import com.sunghyun.annotation.UpdateAble;
 import com.sunghyun.member.domain.enums.Gender;
+import com.sunghyun.member.domain.exception.PasswordMismatchException;
+import com.sunghyun.member.domain.service.PasswordService;
+import com.sunghyun.web.ErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,6 +48,9 @@ public class Member {
     @UpdateAble
     private Gender gender;
 
+    //사진
+//    private String photo;
+
     @OneToMany(
             cascade = {
                     CascadeType.PERSIST, //Member save 시 저장 확인 완료
@@ -53,6 +59,15 @@ public class Member {
     @JoinColumn(name="member_no")
     private List<MemberRole> roles;
 
-    //사진
-//    private String photo;
+    public void encryptPassword(final PasswordService passwordService) {
+        this.pwd = passwordService.encode(this.pwd);
+    }
+
+    public void checkPassword(final String inputPassword, final PasswordService passwordService) {
+        // 암호화 인터페이스의 matches 메서드를 활용해 검증
+        if (!passwordService.matches(inputPassword, this.pwd)) {
+            throw new PasswordMismatchException(ErrorCode.M005);
+        }
+    }
+
 }

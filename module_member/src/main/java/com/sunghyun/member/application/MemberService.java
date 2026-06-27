@@ -28,6 +28,7 @@ public class MemberService {
     private final MemberIdPendingHandler memberIdPendingHandler;
     private final ApplicationEventPublisher applicationEventPublisher;
 
+
     @Value("${member.valid-id.prefix}")
     private String pendingIdPrefix;
 
@@ -54,6 +55,7 @@ public class MemberService {
 
         //유저 도메인 생성 및 저장
         Member newMember = dto.toDomain();
+        newMember.encryptPassword(passwordService);
         Member registeredMember = memberRepository.save(newMember);
 
         //이벤트 발행

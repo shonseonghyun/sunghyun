@@ -15,6 +15,5 @@ import java.util.List;
 @Getter
 public class TokenReqDto {
     private String id;
-    private String pwd;
     private List<Role> roles;
 }

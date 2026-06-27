@@ -25,6 +25,7 @@ public enum ErrorCode {
     M005(HttpStatus.BAD_REQUEST,"현재 비밀번호가 일치하지 않습니다."),
     M006(HttpStatus.BAD_REQUEST,"기존 비밀번호와 동일한 비밀번호는 사용할 수 없습니다."),
     M007(HttpStatus.BAD_REQUEST,"아이디 또는 비밀번호를 확인해주세요."),
+    M008(HttpStatus.BAD_REQUEST,"새로 바꾸실 비밀번호를 입력해주세요."),
 
     // -HttpStatus.OK,-- 플랩 관련 (P) ---
     P01(HttpStatus.BAD_REQUEST,"이미 알림을 등록한 매치입니다."),
