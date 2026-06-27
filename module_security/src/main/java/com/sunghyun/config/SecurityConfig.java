@@ -1,7 +1,8 @@
 package com.sunghyun.config;
 
 import com.sunghyun.config.authorize.SecurityRequestMatcherHelper;
-import com.sunghyun.filter.jwtAuthenticationFilter;
+import com.sunghyun.filter.JwtAuthenticationFilter;
+import com.sunghyun.filter.JwtExceptionFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,7 +46,8 @@ public class SecurityConfig {
                 .csrf(CsrfConfigurer::disable) // Rest Api 방식을 사용하기에 비활성화 처리
                 .sessionManagement(AbstractHttpConfigurer::disable) // JWT 통해 세션 관리 할 것이기에 비활성화
 //                .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // https://stackoverflow.com/questions/49081493/what-is-difference-between-disabled-and-stateless-session-management
-                .addFilterBefore(new jwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtExceptionFilter(), JwtAuthenticationFilter.class)
                 .build();
     }
 }
