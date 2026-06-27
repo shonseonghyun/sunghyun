@@ -1,8 +1,0 @@
-plab:
-  api:
-    url: 'https://www.plabfootball.com/api/v2/matches'
-
-# 추가할 로깅 설정
-logging:
-  level:
-    com.sunghyun.feign: DEBUG

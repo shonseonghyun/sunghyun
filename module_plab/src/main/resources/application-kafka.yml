@@ -1,8 +1,0 @@
-spring:
-  kafka:
-    bootstrap-server: localhost:9092
-
-plab:
-  kafka:
-    topics:
-      subscription-noti: plab.noti.subscription

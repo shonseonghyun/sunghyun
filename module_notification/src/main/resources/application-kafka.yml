@@ -1,4 +1,0 @@
-spring:
-  kafka:
-    bootstrap-server: localhost:9092
-    group-id: plab-noti-group
