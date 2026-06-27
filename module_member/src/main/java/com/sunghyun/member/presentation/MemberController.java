@@ -36,13 +36,13 @@ public class MemberController {
     {
         //들어온 인자 찎기
         MemberValidIdResDto result = memberService.validMemberId(id);
-        return GlobalResponse.of(ErrorCode.S00,result);
+        return GlobalResponse.of(ErrorCode.S000,result);
     }
 
     @PostMapping("/login")
     public GlobalResponse login(@RequestBody final MemberLoginReqDto memberLoginReqDto){
         MemberLoginResDto result = authService.login(memberLoginReqDto.getId(), memberLoginReqDto.getPwd());
-        return GlobalResponse.of(ErrorCode.S00,result);
+        return GlobalResponse.of(ErrorCode.S000,result);
     }
 
 //    @GetMapping("/reissue")
@@ -59,7 +59,7 @@ public class MemberController {
     {
         //들어온 인자 찎기
         final MemberResDto result = memberService.registerMember(dto);
-        return GlobalResponse.of(ErrorCode.S00,result);
+        return GlobalResponse.of(ErrorCode.S000,result);
     }
 
     @GetMapping("/{memberNo}")
@@ -68,7 +68,7 @@ public class MemberController {
     )
     {
         final MemberResDto result = memberService.getMemberByMemberNo(memberNo);
-        return GlobalResponse.of(ErrorCode.S00,result);
+        return GlobalResponse.of(ErrorCode.S000,result);
     }
 
     @PutMapping("")
@@ -77,6 +77,6 @@ public class MemberController {
     )
     {
         final MemberResDto result = memberService.modifyMember(dto);
-        return GlobalResponse.of(ErrorCode.S00,result);
+        return GlobalResponse.of(ErrorCode.S000,result);
     }
 }

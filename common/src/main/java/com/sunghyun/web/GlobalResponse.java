@@ -19,7 +19,7 @@ public class GlobalResponse<T> {
 
     // 1. 단순 에러 코드만 필요한 경우
     public static <T> GlobalResponse<T> of(ErrorCode errorCode){
-        if(errorCode==null) return GlobalResponse.of(ErrorCode.F00);
+        if(errorCode==null) return GlobalResponse.of(ErrorCode.F000);
 
         return GlobalResponse.<T>builder()
                 .code(errorCode.name())

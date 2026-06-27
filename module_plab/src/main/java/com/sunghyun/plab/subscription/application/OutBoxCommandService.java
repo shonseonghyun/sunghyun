@@ -40,7 +40,7 @@ public class OutBoxCommandService {
         log.info("현재 활성화된 트랜잭션 이름: [{}]", currentTransactionName);
 
         MatchSubscriptionOutBox outBox = outBoxRepository.findById(outBoxNo)
-                .orElseThrow(() -> new NotExistMatchSubscriptionOutBoxException(ErrorCode.O00));
+                .orElseThrow(() -> new NotExistMatchSubscriptionOutBoxException(ErrorCode.O000));
 
         if (isPublished) {
             outBox.markSent();

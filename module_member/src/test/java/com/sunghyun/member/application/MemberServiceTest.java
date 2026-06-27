@@ -59,7 +59,7 @@ class MemberServiceTest {
     private static final String NAME = "홍길동";
     private static final String TEL = "01012345678";
     private static final String BIRTH_DT = "950204";
-    private static final Gender GENDER = Gender.MAN;
+    private static final Gender GENDER = Gender.MALE;
     private static final String PENDING_TOKEN = "unique";
 
 
@@ -150,8 +150,8 @@ class MemberServiceTest {
         //when,then
         assertThatThrownBy(()->target.getMemberByMemberNo(memberNo))
                 .isInstanceOf(NotExistMemberNoException.class)//예외 타입 검증
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.M00) // 2. 내부 필드(ErrorCode) 값 검증
-                .extracting("errorCode.message").isEqualTo(ErrorCode.M00.getMessage()) // 3. (선택사항) 에러코드 내부의 메시지까지 확인하고 싶을 때
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.M000) // 2. 내부 필드(ErrorCode) 값 검증
+                .extracting("errorCode.message").isEqualTo(ErrorCode.M000.getMessage()) // 3. (선택사항) 에러코드 내부의 메시지까지 확인하고 싶을 때
         ;
     }
 
@@ -239,7 +239,7 @@ class MemberServiceTest {
                 .tel(TEL)
                 .currentPwd(PWD)
                 .newPwd(PWD+123)
-                .gender(Gender.WOMAN)
+                .gender(Gender.FEMALE)
                 .build()
                 ;
 
@@ -264,7 +264,7 @@ class MemberServiceTest {
                 .tel(TEL)
                 .currentPwd(PWD)
                 .newPwd(PWD)
-                .gender(Gender.WOMAN)
+                .gender(Gender.FEMALE)
                 .build();
 
         Member member = Member.builder()
@@ -272,7 +272,7 @@ class MemberServiceTest {
                 .email(EMAIL)
                 .tel(TEL)
                 .pwd(PWD)
-                .gender(Gender.WOMAN)
+                .gender(Gender.FEMALE)
                 .pwd(PWD)
                 .build()
                 ;
@@ -299,7 +299,7 @@ class MemberServiceTest {
                 .tel(TEL)
                 .currentPwd(PWD)
                 .newPwd(NEW_PWD)
-                .gender(Gender.WOMAN)
+                .gender(Gender.FEMALE)
                 .build()
                 ;
 
@@ -308,7 +308,7 @@ class MemberServiceTest {
                 .email(EMAIL)
                 .tel(TEL)
                 .pwd(PWD)
-                .gender(Gender.WOMAN)
+                .gender(Gender.FEMALE)
                 .pwd(PWD)
                 .build()
                 ;
@@ -339,7 +339,7 @@ class MemberServiceTest {
                 .tel(TEL)
                 .currentPwd(null)
                 .newPwd(null)
-                .gender(Gender.WOMAN)
+                .gender(Gender.FEMALE)
                 .build()
                 ;
 
@@ -348,7 +348,7 @@ class MemberServiceTest {
                 .email(EMAIL)
                 .tel(TEL)
                 .pwd(PWD)
-                .gender(Gender.WOMAN)
+                .gender(Gender.FEMALE)
                 .pwd(PWD)
                 .build()
                 ;
@@ -379,7 +379,7 @@ class MemberServiceTest {
                 .tel(TEL)
                 .currentPwd(PWD)
                 .newPwd(PWD)
-                .gender(Gender.WOMAN)
+                .gender(Gender.FEMALE)
                 .build()
                 ;
 
@@ -388,7 +388,7 @@ class MemberServiceTest {
                 .email(EMAIL)
                 .tel(TEL+123)
                 .pwd(PWD)
-                .gender(Gender.WOMAN)
+                .gender(Gender.FEMALE)
                 .pwd(PWD)
                 .build()
                 ;

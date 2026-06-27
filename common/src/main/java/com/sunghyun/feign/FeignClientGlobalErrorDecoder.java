@@ -20,7 +20,7 @@ public class FeignClientGlobalErrorDecoder implements ErrorDecoder {
     public Exception decode(String methodKey, Response response) {
         if (response.status() == 404) {
             // common에 정의된 기본 에러 코드(예: COMMON_BAD_REQUEST) 사용
-            return new ExternalResourceNotFoundException(ErrorCode.COMMON_400);
+            return new ExternalResourceNotFoundException(ErrorCode.E001);
         }
         return new ErrorDecoder.Default().decode(methodKey, response);
     }

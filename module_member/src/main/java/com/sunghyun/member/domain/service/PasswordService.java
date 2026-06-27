@@ -15,11 +15,11 @@ public class PasswordService {
     public boolean updatePwd(String currentPwd, String newPwd, Member member){
         if(StringUtils.hasText(currentPwd) || StringUtils.hasText(newPwd)){
             if(!member.getPwd().equals(currentPwd)){
-                throw new PasswordMismatchException(ErrorCode.M05);
+                throw new PasswordMismatchException(ErrorCode.M005);
             }
 
             if(!StringUtils.hasText(newPwd)){
-                throw new EmptyNewPasswordException(ErrorCode.M06);
+                throw new EmptyNewPasswordException(ErrorCode.M006);
             }
 
             else{

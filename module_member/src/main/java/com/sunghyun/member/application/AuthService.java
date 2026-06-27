@@ -23,12 +23,12 @@ public class AuthService {
     public MemberLoginResDto login(final String id,final String inputPwd){
         // 회원 조회
         Member member = memberRepository.getMember(id)
-                .orElseThrow(()->new MemberException(ErrorCode.M07));
+                .orElseThrow(()->new MemberException(ErrorCode.M007));
 
         // 비밀번호 검증
         if(!member.getPwd().equals(inputPwd)){
             log.error("비밀번호가 일치하지 않습니다.");
-            throw new MemberException(ErrorCode.M05);
+            throw new MemberException(ErrorCode.M005);
         }
 
         // 토큰 발행

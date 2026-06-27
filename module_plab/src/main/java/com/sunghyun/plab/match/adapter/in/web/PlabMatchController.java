@@ -24,6 +24,6 @@ public class PlabMatchController {
     @PostMapping("/{plabMatchNo}")
     public GlobalResponse registerPlabMatch(@PathVariable("plabMatchNo") final Long plabMatchNo){
         plabMatchRegisterFacadeUseCase.registerPlabMatch(plabMatchNo);
-        return GlobalResponse.of(ErrorCode.S00);
+        return GlobalResponse.of(ErrorCode.S000);
     }
 }

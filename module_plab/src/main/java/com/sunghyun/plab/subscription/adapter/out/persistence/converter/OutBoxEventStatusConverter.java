@@ -18,7 +18,7 @@ public class OutBoxEventStatusConverter implements AttributeConverter<OutBoxEven
         return Arrays.stream(OutBoxEventStatus.values())
                 .filter(outBoxEventStatus -> outBoxEventStatus.name().equals(value))
                 .findFirst()
-                .orElseThrow(()->new InvalidEnumCodeException(ErrorCode.E00))
+                .orElseThrow(()->new InvalidEnumCodeException(ErrorCode.C000))
                 ;
     }
 }

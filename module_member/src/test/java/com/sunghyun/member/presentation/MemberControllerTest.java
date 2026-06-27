@@ -48,7 +48,7 @@ class MemberControllerTest {
     private static final String NAME = "홍길동";
     private static final String TEL = "01012345678";
     private static final String BIRTH_DT = "950204";
-    private static final Gender GENDER = Gender.MAN;
+    private static final Gender GENDER = Gender.MALE;
     private static final String PENDING_TOKEN = "unique";
 
 
@@ -91,8 +91,8 @@ class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(wrongRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(ErrorCode.F00.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.F00.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.F000.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.F000.getMessage()))
                 // email 필드 에러가 포함되어 있는지 확인
                 .andExpect(jsonPath("$.detailMessages[?(@.field == 'email')].reason")
                         .value(hasItem("이메일 형식이 올바르지 않습니다.")))
@@ -116,8 +116,8 @@ class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(memberRegisterReqDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.S00.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.S00.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.S000.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.S000.getMessage()))
                 .andExpect(jsonPath("$.data.memberNo").value(1L))
                 .andExpect(jsonPath("$.data.id").value("testId"))
         ;
@@ -131,7 +131,7 @@ class MemberControllerTest {
 
         // Service에서 NotExistMemberNoException을 던지도록 stubbing
         given(memberService.getMemberByMemberNo(nonExistMemberNo))
-                .willThrow(new NotExistMemberNoException(ErrorCode.M00));
+                .willThrow(new NotExistMemberNoException(ErrorCode.M000));
 
         // when & then
         mockMvc.perform(get("/member/" + nonExistMemberNo) // GET 요청 가정
@@ -139,8 +139,8 @@ class MemberControllerTest {
                 .andExpect(status().isBadRequest()) // ExceptionHandler의 설정에 따라 (보통 400)
 
                 // GlobalResponse 규격 검증
-                .andExpect(jsonPath("$.code").value(ErrorCode.M00.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.M00.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.M000.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.M000.getMessage()))
                 .andExpect(jsonPath("$.data").doesNotExist()); // 에러 시 data는 null이므로 제거됨
     }
 
@@ -151,7 +151,7 @@ class MemberControllerTest {
 
         // Service에서 NotExistMemberNoException을 던지도록 stubbing
         given(memberService.getMemberByMemberNo(nonExistMemberNo))
-                .willThrow(new NotExistMemberNoException(ErrorCode.M00));
+                .willThrow(new NotExistMemberNoException(ErrorCode.M000));
 
         // when & then
         mockMvc.perform(get("/member/" + nonExistMemberNo) // GET 요청 가정
@@ -159,8 +159,8 @@ class MemberControllerTest {
                 .andExpect(status().isBadRequest()) // ExceptionHandler의 설정에 따라 (보통 400)
 
                 // GlobalResponse 규격 검증
-                .andExpect(jsonPath("$.code").value(ErrorCode.M00.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.M00.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.M000.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.M000.getMessage()))
                 .andExpect(jsonPath("$.data").doesNotExist()); // 에러 시 data는 null이므로 제거됨
     }
 
@@ -174,8 +174,8 @@ class MemberControllerTest {
         mockMvc.perform(get("/valid-id/" + blankId) // GET 요청 가정
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound()) // ExceptionHandler의 설정에 따라 (보통 400)
-                .andExpect(jsonPath("$.code").value(ErrorCode.COMMON_404.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.COMMON_404.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.C404.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.C404.getMessage()))
                 ;
     }
 
@@ -191,8 +191,8 @@ class MemberControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(memberModifyReqDtoWithNull)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(ErrorCode.F00.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.F00.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.F000.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.F000.getMessage()))
                 .andExpect(jsonPath("$.detailMessages[0].field").value("memberNo"))
                 .andExpect(jsonPath("$.detailMessages[0].reason").value("필수 입력 값입니다."))
                 ;
@@ -220,8 +220,8 @@ class MemberControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(memberModifyReqDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.S00.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.S00.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.S000.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.S000.getMessage()))
                 .andExpect(jsonPath("$.data.memberNo").value(MEMBER_NO))
                 .andExpect(jsonPath("$.data.tel").value(TEL))
         ;

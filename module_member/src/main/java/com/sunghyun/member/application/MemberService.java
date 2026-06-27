@@ -44,12 +44,12 @@ public class MemberService {
 
         //토큰이 존재하지 않는 경우(타임아웃 or 중복체크 미이행)
         if(selectedPendingToken==null){
-            throw new NotValidatedIdException(ErrorCode.M03);
+            throw new NotValidatedIdException(ErrorCode.M003);
         }
 
         //토큰이 일치하지 않는 경우
         if(!selectedPendingToken.equals(dto.getPendingToken())){
-            throw new InvalidPendingTokenException(ErrorCode.M04);
+            throw new InvalidPendingTokenException(ErrorCode.M004);
         }
 
         //유저 도메인 생성 및 저장
@@ -72,7 +72,7 @@ public class MemberService {
 
         //2. 유저 없는 경우 예외 발생
         if(selectedMember == null){
-            throw new NotExistMemberNoException(ErrorCode.M00);
+            throw new NotExistMemberNoException(ErrorCode.M000);
         }
 
         //3. 변환 및 return
@@ -85,7 +85,7 @@ public class MemberService {
         Member selectedMember = memberRepository.getMemberByMemberNo(dto.getMemberNo());
         //2. 유저 없는 경우 예외 발생
         if(selectedMember == null){
-            throw new NotExistMemberNoException(ErrorCode.M00);
+            throw new NotExistMemberNoException(ErrorCode.M000);
         }
 
         //업데이트 위해 dto를 도메인으로 매핑
@@ -120,7 +120,7 @@ public class MemberService {
 
         //2. 유저 없는 경우 예외 발생
         if(selectedMember == null){
-            throw new NotExistMemberNoException(ErrorCode.M00);
+            throw new NotExistMemberNoException(ErrorCode.M000);
         }
 
         //3. 삭제
@@ -140,7 +140,7 @@ public class MemberService {
         //1. Redis 내 요청 ID 존재 여부 확인
         // 아이디 선점 시도 (Redis 로직 추상화)
         if (!memberIdPendingHandler.lock(key,pendingToken,timeout)) {
-            throw new PendingIdException(ErrorCode.M01);
+            throw new PendingIdException(ErrorCode.M001);
         }
 
         //2. DB 내 요청 ID 존재 여부 확인
@@ -148,7 +148,7 @@ public class MemberService {
         if (existInDbFlg) {
             // DB에 이미 있으면 선점했던 키 해제
             memberIdPendingHandler.unlock(key);
-            throw new AlreadyExistMemberIdException(ErrorCode.M02);
+            throw new AlreadyExistMemberIdException(ErrorCode.M002);
         }
 
         //3. 사용가능한 아이디 검증완료

@@ -48,7 +48,7 @@ public enum NotiSetting {
         return Arrays.stream(NotiSetting.values())
                 .filter(notiSetting -> notiSetting.getCode().equals(code))
                 .findFirst()
-                .orElseThrow(()->new InvalidEnumCodeException(ErrorCode.E00));
+                .orElseThrow(()->new InvalidEnumCodeException(ErrorCode.C000));
     }
 
     public static NotiSetting getSubType(final boolean isSuperSub,final boolean isManagerFree) {

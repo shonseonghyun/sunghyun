@@ -46,8 +46,8 @@ class PlabMatchControllerTest {
         mockMvc.perform(post(url)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(ErrorCode.F00.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.F00.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.F000.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.F000.getMessage()))
                 .andExpect(jsonPath("$.detailMessages[0].field").value("plabMatchNo"))
                 .andExpect(jsonPath("$.detailMessages[0].value").value(invalidPlabMatchNo));
     }
@@ -59,8 +59,8 @@ class PlabMatchControllerTest {
         mockMvc.perform(post(BASE_REG_URL)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value(ErrorCode.COMMON_404.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.COMMON_404.getMessage()));
+                .andExpect(jsonPath("$.code").value(ErrorCode.C404.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.C404.getMessage()));
     }
 
     @Test
@@ -74,7 +74,7 @@ class PlabMatchControllerTest {
         mockMvc.perform(get(url) // POST 전용 경로에 GET 요청
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isMethodNotAllowed())
-                .andExpect(jsonPath("$.code").value(ErrorCode.COMMON_405.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.COMMON_405.getMessage()));
+                .andExpect(jsonPath("$.code").value(ErrorCode.C405.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.C405.getMessage()));
     }
 }

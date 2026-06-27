@@ -20,7 +20,7 @@ public class NotificationKafkaInboundAdapter {
     public void handleNotificationEvent(final NotificationRequestEventDto dto, final Acknowledgment ack){
         log.info("[Kafka Adapter] 메시지 수신 완료. 토픽: plab-noti, 데이터:[{}]",dto);
 
-        if(true) throw new BaseException(ErrorCode.F00);
+        if(true) throw new BaseException(ErrorCode.F000);
 
         notificationUseCase.doNoti(dto);
 

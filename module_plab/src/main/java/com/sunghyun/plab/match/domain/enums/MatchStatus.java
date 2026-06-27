@@ -23,6 +23,6 @@ public enum MatchStatus {
         return Arrays.stream(MatchStatus.values())
                 .filter(matchStatus -> matchStatus.getCode().equals(code))
                 .findFirst()
-                .orElseThrow(()->new InvalidEnumCodeException(ErrorCode.E00));
+                .orElseThrow(()->new InvalidEnumCodeException(ErrorCode.C000));
     }
 }

@@ -27,7 +27,7 @@ public class MatchSubscriptionController {
     )
     {
         MatchSubscriptionRegResDto result = matchSubscriptionUseCase.registerMatchSubscription(dto);
-        return GlobalResponse.of(ErrorCode.S00,result);
+        return GlobalResponse.of(ErrorCode.S000,result);
     }
 
     @PutMapping("/{subscriptionNo}")
@@ -37,6 +37,6 @@ public class MatchSubscriptionController {
     )
     {
         MatchSubscriptionModResDto result = matchSubscriptionUseCase.modifyMatchSubscription(subscriptionNo,dto);
-        return GlobalResponse.of(ErrorCode.S00,result);
+        return GlobalResponse.of(ErrorCode.S000,result);
     }
 }

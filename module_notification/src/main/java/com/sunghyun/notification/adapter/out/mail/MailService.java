@@ -28,7 +28,7 @@ public class MailService implements NotificationSendPort {
             log.info(">>> [MailService] 메일 발송 완료 (Thread: {})", Thread.currentThread().getName());
         } catch (Exception e) {
             log.error("메일 발송 도중 에러 발생");
-            throw new MailSendException(ErrorCode.MA00);
+            throw new MailSendException(ErrorCode.E002);
         }
 //        finally {
 //            throw new RuntimeException("의도적인 예외 발생");
@@ -60,7 +60,7 @@ public class MailService implements NotificationSendPort {
             emailSender.send(message);
         }catch (MessagingException e){
             log.error("메일 발송 도중 에러 발생");
-            throw new MailSendException(ErrorCode.MA00);
+            throw new MailSendException(ErrorCode.E002);
         }
     }
 

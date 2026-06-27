@@ -62,8 +62,8 @@ class MatchSubscriptionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(regDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(ErrorCode.F00.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.F00.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.F000.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.F000.getMessage()))
         ;
     }
 
@@ -71,7 +71,7 @@ class MatchSubscriptionControllerTest {
     @DisplayName("구독 매치 수정 시, NotiValue 타입 일치하치 않는 경우 검증하기")
     void modMatchSubscriptionWithNotEqualNotiType() throws Exception {
         //given
-        final Long subscriptionNo = 1L;
+        final long subscriptionNo = 1L;
         final String url = BASE_REGISTER_URL+"/"+ subscriptionNo;
         MatchSubscriptionModReqDto modReqDto = MatchSubscriptionModReqDto.builder()
                 .notiType(NotiType.PLAYER_COUNT)
@@ -85,8 +85,8 @@ class MatchSubscriptionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(modReqDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.F00.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.F00.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.F000.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.F000.getMessage()))
         ;
     }
 
@@ -108,12 +108,12 @@ class MatchSubscriptionControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(modReqDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.S00.name()))
-                .andExpect(jsonPath("$.message").value(ErrorCode.S00.getMessage()))
+                .andExpect(jsonPath("$.code").value(ErrorCode.S000.name()))
+                .andExpect(jsonPath("$.message").value(ErrorCode.S000.getMessage()))
         ;
     }
 
-//
+
 //    @Test
 //    @DisplayName("구독 매치 수정 시, 타겟 인원이 0명인 경우 유효성 검증 실패로 400 에러를 응답한다.")
 //    void modifyMatchSubscription_WhenTargetPlayerCntIsZero_ReturnsBadRequest() throws Exception {
