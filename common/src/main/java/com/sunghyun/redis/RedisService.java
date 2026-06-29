@@ -19,8 +19,18 @@ public class RedisService {
                         .setIfAbsent(
                             key,
                             value,
-                            Duration.ofSeconds(timeout)
+                            Duration.ofMillis(timeout)
                 ));
+    }
+
+    public void set(final String key, final String value,final Long timeout){
+        redisTemplate.opsForValue()
+                // 값이 있어도 덮어쓴다
+                .set(
+                        key,
+                        value,
+                        Duration.ofMillis(timeout)
+                );
     }
 
     public void delete(final String key){

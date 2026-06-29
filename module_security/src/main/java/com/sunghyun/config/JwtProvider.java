@@ -35,12 +35,20 @@ public class JwtProvider {
     private String secretKey;
 
     // 액세스 토큰 만료 시간 30분
-    @Value("${security.jwt.access.token.expire:1800000}")
+    @Value("${security.jwt.access.token.expire}")
     private Long accessTokenExpirationTime;
 
     // 리프레시 토큰 만료 시간: 2주
-    @Value("${security.jwt.refresh.token.expire:1209600000}")
+    @Value("${security.jwt.refresh.token.expire}")
     private Long refreshTokenExpirationTime;
+
+    public String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
 
     /**
      * 인증 성공 정보를 받아 JWT Access Token을 발급합니다.
@@ -59,7 +67,35 @@ public class JwtProvider {
                 .build();
     }
 
-    private String  generateAccessToken(TokenReqDto tokenReqDto){
+    public TokenResDto reissueAccessToken(TokenReqDto tokenReqDto, String refreshToken) {
+        // 1. 토큰 내부의 클레임(Claims) 내 id 추출 + 토큰 검증
+        final String id = parseToken(refreshToken).getSubject();
+
+        // refreshToken 검증
+        validateRefreshToken(tokenReqDto,id);
+
+        log.info("Refresh Token 발급 완료 - Member Id: {}", tokenReqDto.getId());
+
+        // 공통 DTO 규격으로 래핑하여 리턴
+        return TokenResDto.builder()
+                .accessToken(generateAccessToken(tokenReqDto))
+                .build()
+                ;
+    }
+
+    private void validateRefreshToken(TokenReqDto tokenReqDto, String id){
+        if(!StringUtils.hasText(id)){
+            log.error("토큰 내 subject가 비어있습니다.");
+            throw new InvalidTokenException(ErrorCode.T03);
+        }
+
+        if(!id.equals(tokenReqDto.getId())){
+            log.error("토큰 내 정보와 요청 정보가 일치하지 않습니다. 토큰 내 id[{}] / 인입된 id[{}]", tokenReqDto.getId(),id);
+            throw new InvalidTokenException(ErrorCode.T03);
+        }
+    }
+
+    private String generateAccessToken(TokenReqDto tokenReqDto){
         // 1. 유저 식별자(ID) 추출
         final String id = tokenReqDto.getId();
 
@@ -132,6 +168,8 @@ public class JwtProvider {
         return new UsernamePasswordAuthenticationToken(id, null, roles);
     }
 
+
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
@@ -160,11 +198,5 @@ public class JwtProvider {
         }
     }
 
-    public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
+
 }

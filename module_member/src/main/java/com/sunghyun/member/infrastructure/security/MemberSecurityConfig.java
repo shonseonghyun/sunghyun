@@ -17,7 +17,8 @@ public class MemberSecurityConfig {
                 SecurityRequestMatcher.patterns(
                         "/member/login",
                         "/member/register",
-                        "/member/valid-id/**"
+                        "/member/valid-id/**",
+                        "/member/reissue"
                 ).permitAll(),
                 SecurityRequestMatcher.patterns(
                         "/member/**"

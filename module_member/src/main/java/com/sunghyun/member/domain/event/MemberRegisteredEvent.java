@@ -6,5 +6,5 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class MemberRegisteredEvent {
-    private String key;
+    private String id;
 }

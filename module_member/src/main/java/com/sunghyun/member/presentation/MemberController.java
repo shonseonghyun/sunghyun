@@ -2,12 +2,11 @@ package com.sunghyun.member.presentation;
 
 import com.sunghyun.member.application.MemberService;
 import com.sunghyun.member.application.AuthService;
-import com.sunghyun.member.application.dto.req.MemberLoginReqDto;
-import com.sunghyun.member.application.dto.req.MemberLoginResDto;
-import com.sunghyun.member.application.dto.req.MemberModifyReqDto;
-import com.sunghyun.member.application.dto.req.MemberRegisterReqDto;
+import com.sunghyun.member.application.dto.req.*;
+import com.sunghyun.member.application.dto.res.MemberLoginResDto;
 import com.sunghyun.member.application.dto.res.MemberResDto;
 import com.sunghyun.member.application.dto.res.MemberValidIdResDto;
+import com.sunghyun.member.application.dto.res.TokenReissueResDto;
 import com.sunghyun.web.ErrorCode;
 import com.sunghyun.web.GlobalResponse;
 import jakarta.validation.Valid;
@@ -34,8 +33,7 @@ public class MemberController {
             final String id
     )
     {
-        //들어온 인자 찎기
-        MemberValidIdResDto result = memberService.validMemberId(id);
+        MemberValidIdResDto result = authService.validMemberId(id);
         return GlobalResponse.of(ErrorCode.S000,result);
     }
 
@@ -45,11 +43,11 @@ public class MemberController {
         return GlobalResponse.of(ErrorCode.S000,result);
     }
 
-//    @GetMapping("/reissue")
-//    public GlobalResponse reissueAccessToken(@RequestBody final TokenReissueReqDto tokenReissueReqDto){
-//        authService.reissueAccessToken(tokenReissueReqDto);
-//        return GlobalResponse.of(ErrorCode.S00);
-//    }
+    @GetMapping("/reissue")
+    public GlobalResponse reissueAccessToken(@RequestBody final TokenReissueReqDto tokenReissueReqDto){
+        TokenReissueResDto result = authService.reissueAccessToken(tokenReissueReqDto);
+        return GlobalResponse.of(ErrorCode.S000,result);
+    }
 
 
     @PostMapping("/register")
