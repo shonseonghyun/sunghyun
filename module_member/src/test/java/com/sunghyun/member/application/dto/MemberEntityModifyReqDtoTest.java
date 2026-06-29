@@ -1,36 +1,36 @@
 package com.sunghyun.member.application.dto;
 
 import com.sunghyun.member.application.dto.req.MemberModifyReqDto;
-import com.sunghyun.member.domain.model.Member;
+import com.sunghyun.member.adpater.out.persistence.entity.MemberEntity;
 import com.sunghyun.utils.ApiUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class MemberModifyReqDtoTest {
+class MemberEntityModifyReqDtoTest {
 
     @Test
     @DisplayName("null 무시하는 필드 경우 기존 존재하는 필드를 null로 세팅 시 기존 필드값 유지한다")
     void test1() throws IllegalAccessException {
         //given
         final String email = "sunghyun7895@naver.com";
-        Member targetMember = Member.builder()
+        MemberEntity targetMemberEntity = MemberEntity.builder()
                 .email(email)
                 .build()
                 ;
 
-        Member sourceReqDtoToDomain = MemberModifyReqDto.builder()
+        MemberEntity sourceReqDtoToDomain = MemberModifyReqDto.builder()
                 .email(null)
                 .build()
                 .toDomain()
                 ;
 
         //when
-        ApiUtils.merge(sourceReqDtoToDomain,targetMember);
+        ApiUtils.merge(sourceReqDtoToDomain, targetMemberEntity);
 
         //then
-        assertThat(targetMember.getEmail()).isEqualTo(email);
+        assertThat(targetMemberEntity.getEmail()).isEqualTo(email);
     }
 
     @Test
@@ -39,22 +39,22 @@ class MemberModifyReqDtoTest {
         //given
         final String oldEmail = "sunghyun7895@naver.com";
         final String newEmail = "john7895@naver.com";
-        Member targetMember = Member.builder()
+        MemberEntity targetMemberEntity = MemberEntity.builder()
                 .email(oldEmail)
                 .build()
                 ;
 
-        Member sourceReqDtoToDomain = MemberModifyReqDto.builder()
+        MemberEntity sourceReqDtoToDomain = MemberModifyReqDto.builder()
                 .email(newEmail)
                 .build()
                 .toDomain()
                 ;
 
         //when
-        ApiUtils.merge(sourceReqDtoToDomain,targetMember);
+        ApiUtils.merge(sourceReqDtoToDomain, targetMemberEntity);
 
         //then
-        assertThat(targetMember.getEmail()).isEqualTo(newEmail);
+        assertThat(targetMemberEntity.getEmail()).isEqualTo(newEmail);
     }
 
     @Test
@@ -63,22 +63,22 @@ class MemberModifyReqDtoTest {
         //given
         final String tel = "7957895";
 
-        Member targetMember = Member.builder()
+        MemberEntity targetMemberEntity = MemberEntity.builder()
                 .tel(tel)
                 .build()
                 ;
 
-        Member sourceReqDtoToDomain = MemberModifyReqDto.builder()
+        MemberEntity sourceReqDtoToDomain = MemberModifyReqDto.builder()
                 .tel(null)
                 .build()
                 .toDomain()
                 ;
 
         //when
-        ApiUtils.merge(sourceReqDtoToDomain,targetMember);
+        ApiUtils.merge(sourceReqDtoToDomain, targetMemberEntity);
 
         //then
-        assertThat(targetMember.getTel()).isEqualTo(null);
+        assertThat(targetMemberEntity.getTel()).isEqualTo(null);
     }
 
     @Test
@@ -87,39 +87,39 @@ class MemberModifyReqDtoTest {
         //given
         final String tel = "7957895";
 
-        Member targetMember = Member.builder()
+        MemberEntity targetMemberEntity = MemberEntity.builder()
                 .tel(null)
                 .build()
                 ;
 
-        Member sourceReqDtoToDomain = MemberModifyReqDto.builder()
+        MemberEntity sourceReqDtoToDomain = MemberModifyReqDto.builder()
                 .tel(tel)
                 .build()
                 .toDomain()
                 ;
 
         //when
-        boolean updateFlg = ApiUtils.merge(sourceReqDtoToDomain,targetMember);
+        boolean updateFlg = ApiUtils.merge(sourceReqDtoToDomain, targetMemberEntity);
 
         //then
-        assertThat(targetMember.getTel()).isEqualTo(tel);
+        assertThat(targetMemberEntity.getTel()).isEqualTo(tel);
         assertThat(updateFlg).isEqualTo(true);
     }
 
     @Test
     @DisplayName("변경할 게 없는 경우 false 리턴")
     void test7() throws IllegalAccessException {
-        Member targetMember = Member.builder()
+        MemberEntity targetMemberEntity = MemberEntity.builder()
                 .tel("123456789")
                 .build()
                 ;
 
-        Member sourceMember = Member.builder()
+        MemberEntity sourceMemberEntity = MemberEntity.builder()
                 .tel("123456789")
                 .build()
                 ;
 
-        boolean updateFlg = ApiUtils.merge(sourceMember,targetMember);
+        boolean updateFlg = ApiUtils.merge(sourceMemberEntity, targetMemberEntity);
 
         assertThat(updateFlg).isEqualTo(false);
     }

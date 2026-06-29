@@ -1,11 +1,14 @@
-package com.sunghyun.member.application;
+package com.sunghyun.member.application.service;
 
+import com.sunghyun.config.MemberNotFoundException;
 import com.sunghyun.member.application.dto.req.MemberModifyReqDto;
 import com.sunghyun.member.application.dto.req.MemberRegisterReqDto;
 import com.sunghyun.member.application.dto.res.MemberResDto;
+import com.sunghyun.member.application.port.MemberIdPendingRepository;
+import com.sunghyun.member.application.port.MemberUseCase;
 import com.sunghyun.member.domain.event.MemberRegisteredEvent;
-import com.sunghyun.member.domain.exception.*;
-import com.sunghyun.member.domain.handler.MemberIdPendingHandler;
+import com.sunghyun.member.domain.exception.InvalidPendingTokenException;
+import com.sunghyun.member.domain.exception.NotValidatedIdException;
 import com.sunghyun.member.domain.model.Member;
 import com.sunghyun.member.domain.repository.MemberRepository;
 import com.sunghyun.member.domain.service.PasswordService;
@@ -20,18 +23,30 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MemberService {
+public class MemberService implements MemberUseCase {
     private final MemberRepository memberRepository;
     private final PasswordService passwordService;
-    private final MemberIdPendingHandler memberIdPendingHandler;
+    private final MemberIdPendingRepository memberIdPendingRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    @Transactional(readOnly = true)
+    @Override
+    public MemberResDto getMemberByMemberNo(final Long memberNo){
+        //1. 유저 조회
+        Member selectedMember = memberRepository.getMemberByMemberNo(memberNo)
+                .orElseThrow(()->new MemberNotFoundException(ErrorCode.M000));
+
+        //3. 변환 및 return
+        return MemberResDto.from(selectedMember);
+    }
+
     @Transactional
+    @Override
     public MemberResDto registerMember(final MemberRegisterReqDto dto){
         final String id = dto.getId();
 
         //토큰 조회
-        final Object selectedPendingToken = memberIdPendingHandler.getPendingValue(id);
+        final Object selectedPendingToken = memberIdPendingRepository.getPendingValue(id);
 
         //토큰이 존재하지 않는 경우(타임아웃 or 중복체크 미이행)
         if(selectedPendingToken==null){
@@ -45,8 +60,9 @@ public class MemberService {
 
         //유저 도메인 생성 및 저장
         Member newMember = dto.toDomain();
-        newMember.encryptPassword(passwordService);
-        Member registeredMember = memberRepository.save(newMember);
+        final String encodedPwd = passwordService.encodePwd(dto.getPwd());
+        newMember.setPwd(encodedPwd);
+        Member registeredMember  = memberRepository.save(newMember);
 
         //이벤트 발행
         applicationEventPublisher.publishEvent(new MemberRegisteredEvent(id));
@@ -55,31 +71,17 @@ public class MemberService {
         return MemberResDto.from(registeredMember);
     }
 
-    @Transactional(readOnly = true)
-    public MemberResDto getMemberByMemberNo(final Long memberNo){
-        //1. 유저 조회
-        Member selectedMember = memberRepository.getMemberByMemberNo(memberNo);
-
-        //2. 유저 없는 경우 예외 발생
-        if(selectedMember == null){
-            throw new NotExistMemberNoException(ErrorCode.M000);
-        }
-
-        //3. 변환 및 return
-        return MemberResDto.from(selectedMember);
-    }
-
     @Transactional
+    @Override
     public MemberResDto modifyMember(final MemberModifyReqDto dto){
         //1. 유저 조회
-        Member selectedMember = memberRepository.getMemberByMemberNo(dto.getMemberNo());
-        //2. 유저 없는 경우 예외 발생
-        if(selectedMember == null){
-            throw new NotExistMemberNoException(ErrorCode.M000);
-        }
+        Member selectedMember = memberRepository.getMemberByMemberNo(dto.getMemberNo())
+                .orElseThrow(()->new MemberNotFoundException(ErrorCode.M000));
+                ;
 
         //업데이트 위해 dto를 도메인으로 매핑
-        Member modifyReqMember = dto.toDomain();
+//        Member modifyReqMember = dto.toDomain();
+        Member modifyReqMember = null;
 
         //업데이트 여부 플래그
         boolean isUpdated ;
@@ -88,14 +90,14 @@ public class MemberService {
         isUpdated = passwordService.updatePwd(dto.getCurrentPwd(),dto.getNewPwd(),selectedMember);
 
         //4. 그 외 필드 merge
-        boolean mergeFlg = ApiUtils.merge(modifyReqMember,selectedMember);
+        boolean mergeFlg = ApiUtils.merge(modifyReqMember, selectedMember );
         if(mergeFlg){
             isUpdated = true;
         }
 
         // 5. 변경사항이 있을 때만 save (JPA라면 Dirty Checking으로 생략 가능)
         if(isUpdated){
-            memberRepository.save(selectedMember);
+            memberRepository.save(selectedMember );
         }
 
         //6. 변환 및 return
@@ -103,14 +105,12 @@ public class MemberService {
     }
 
     @Transactional
+    @Override
     public void deleteMember(final Long memberNo){
         //1. 유저 조회
-        Member selectedMember = memberRepository.getMemberByMemberNo(memberNo);
-
-        //2. 유저 없는 경우 예외 발생
-        if(selectedMember == null){
-            throw new NotExistMemberNoException(ErrorCode.M000);
-        }
+        memberRepository.getMemberByMemberNo(memberNo)
+                .orElseThrow(()->new MemberNotFoundException(ErrorCode.M000));
+                ;
 
         //3. 삭제
         memberRepository.delMember(memberNo);

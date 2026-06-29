@@ -1,6 +1,6 @@
-package com.sunghyun.member.infrastructure.handler;
+package com.sunghyun.member.adpater.out.redis.handler;
 
-import com.sunghyun.member.domain.handler.MemberIdPendingHandler;
+import com.sunghyun.member.application.port.MemberIdPendingRepository;
 import com.sunghyun.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class RedisMemberIdPendingHandler implements MemberIdPendingHandler {
+public class RedisMemberIdPendingRepository implements MemberIdPendingRepository {
     private final RedisService redisService;
 
     @Value("${member.valid-id.prefix}")

@@ -4,11 +4,12 @@ import com.sunghyun.member.application.dto.req.MemberModifyReqDto;
 import com.sunghyun.member.application.dto.req.MemberRegisterReqDto;
 import com.sunghyun.member.application.dto.res.MemberResDto;
 import com.sunghyun.member.application.dto.res.MemberValidIdResDto;
+import com.sunghyun.member.application.service.MemberService;
 import com.sunghyun.member.domain.enums.Gender;
 import com.sunghyun.member.domain.event.MemberRegisteredEvent;
 import com.sunghyun.member.domain.exception.*;
-import com.sunghyun.member.domain.handler.MemberIdPendingHandler;
-import com.sunghyun.member.domain.model.Member;
+import com.sunghyun.member.application.port.MemberIdPendingRepository;
+import com.sunghyun.member.adpater.out.persistence.entity.MemberEntity;
 import com.sunghyun.member.domain.repository.MemberRepository;
 import com.sunghyun.member.domain.service.PasswordService;
 import com.sunghyun.web.ErrorCode;
@@ -30,7 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class MemberServiceTest {
+class MemberEntityServiceTest {
 
     @InjectMocks
     private MemberService target;
@@ -42,7 +43,7 @@ class MemberServiceTest {
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Mock
-    private MemberIdPendingHandler memberIdPendingHandler;
+    private MemberIdPendingRepository memberIdPendingRepository;
 
     @Mock
     private PasswordService passwordService;
@@ -79,7 +80,7 @@ class MemberServiceTest {
     void test(){
         //given
         MemberRegisterReqDto memberRegisterReqDto = createMemberRegisterReqDto();
-        when(memberIdPendingHandler.getPendingValue(anyString()))
+        when(memberIdPendingRepository.getPendingValue(anyString()))
                 .thenReturn(null)
         ;
 
@@ -95,7 +96,7 @@ class MemberServiceTest {
         //given
         final String differentPendingToken = "ad";
         MemberRegisterReqDto memberRegisterReqDto = createMemberRegisterReqDto();
-        when(memberIdPendingHandler.getPendingValue(anyString()))
+        when(memberIdPendingRepository.getPendingValue(anyString()))
                 .thenReturn(differentPendingToken)
         ;
 
@@ -112,7 +113,7 @@ class MemberServiceTest {
         //given
         MemberRegisterReqDto memberRegisterReqDto = createMemberRegisterReqDto();
 
-        Member savedMember = Member.builder()
+        MemberEntity savedMemberEntity = MemberEntity.builder()
                 .memberNo(1L)
                 .id(ID)
                 .pwd(PWD)
@@ -123,11 +124,11 @@ class MemberServiceTest {
                 .gender(GENDER)
                 .build()
                 ;
-        when(memberIdPendingHandler.getPendingValue(anyString()))
+        when(memberIdPendingRepository.getPendingValue(anyString()))
                 .thenReturn(PENDING_TOKEN)
         ;
-        when(memberRepository.save(any(Member.class)))
-                .thenReturn(savedMember)
+        when(memberRepository.save(any(MemberEntity.class)))
+                .thenReturn(savedMemberEntity)
         ;
 
         //when
@@ -135,7 +136,7 @@ class MemberServiceTest {
 
         //then
         assertThat(memberResDto.getId()).isEqualTo(ID);
-        verify((memberRepository),times(1)).save(any(Member.class));
+        verify((memberRepository),times(1)).save(any(MemberEntity.class));
         verify(applicationEventPublisher, times(1)).publishEvent(any(MemberRegisteredEvent.class));
     }
 
@@ -169,14 +170,14 @@ class MemberServiceTest {
 //        when(redisTemplate.opsForValue().setIfAbsent(expectedKey,"pending", Duration.ofMinutes(5)))
 //                .thenReturn(Boolean.FALSE);
 
-        when(memberIdPendingHandler.lock(anyString(),anyString(),anyLong()))
+        when(memberIdPendingRepository.lock(anyString(),anyString(),anyLong()))
                 .thenReturn(false)
                 ;
 
         //when,then
         assertThatThrownBy(() -> target.validMemberId(ID))
                 .isInstanceOf(PendingIdException.class);
-        verify(memberIdPendingHandler, never()).unlock(anyString());
+        verify(memberIdPendingRepository, never()).unlock(anyString());
     }
 
     @Test
@@ -190,15 +191,15 @@ class MemberServiceTest {
 //        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 //        when(redisTemplate.opsForValue().setIfAbsent(expectedKey,"pending", Duration.ofMinutes(5)))
 //                .thenReturn(Boolean.TRUE);
-        when(memberIdPendingHandler.lock(anyString(),anyString(),anyLong()))
+        when(memberIdPendingRepository.lock(anyString(),anyString(),anyLong()))
                 .thenReturn(true);
         when(memberRepository.isExistMemberById(ID))
                 .thenReturn(true);
 
         //when,then
         assertThatThrownBy(() -> target.validMemberId(ID))
-                .isInstanceOf(AlreadyExistMemberIdException.class);
-        verify(memberIdPendingHandler, times(1)).unlock(anyString());
+                .isInstanceOf(MemberIdExistException.class);
+        verify(memberIdPendingRepository, times(1)).unlock(anyString());
     }
 
     @Test
@@ -213,7 +214,7 @@ class MemberServiceTest {
 //        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 //        when(redisTemplate.opsForValue().setIfAbsent(expectedKey,"pending", Duration.ofMinutes(5)))
 //                .thenReturn(Boolean.TRUE);
-        when(memberIdPendingHandler.lock(anyString(),anyString(),anyLong()))
+        when(memberIdPendingRepository.lock(anyString(),anyString(),anyLong()))
                 .thenReturn(true);
 
         when(memberRepository.isExistMemberById(ID))
@@ -224,7 +225,7 @@ class MemberServiceTest {
         final MemberValidIdResDto result = target.validMemberId(ID);
         assertThat(result).isNotNull();
         // DB에 없으므로 Redis 삭제 메서드는 호출되지 않아야 함
-        verify(memberIdPendingHandler, never()).unlock(anyString());
+        verify(memberIdPendingRepository, never()).unlock(anyString());
     }
 
 
@@ -267,7 +268,7 @@ class MemberServiceTest {
                 .gender(Gender.FEMALE)
                 .build();
 
-        Member member = Member.builder()
+        MemberEntity memberEntity = MemberEntity.builder()
                 .memberNo(MEMBER_NO)
                 .email(EMAIL)
                 .tel(TEL)
@@ -278,7 +279,7 @@ class MemberServiceTest {
                 ;
 
         when(memberRepository.getMemberByMemberNo(anyLong()))
-                .thenReturn(member)
+                .thenReturn(memberEntity)
         ;
 
         //when
@@ -303,7 +304,7 @@ class MemberServiceTest {
                 .build()
                 ;
 
-        Member member = Member.builder()
+        MemberEntity memberEntity = MemberEntity.builder()
                 .memberNo(MEMBER_NO)
                 .email(EMAIL)
                 .tel(TEL)
@@ -315,9 +316,9 @@ class MemberServiceTest {
 
 
         when(memberRepository.getMemberByMemberNo(anyLong()))
-                .thenReturn(member)
+                .thenReturn(memberEntity)
         ;
-        when(passwordService.updatePwd(memberModifyReqDto.getCurrentPwd(), memberModifyReqDto.getNewPwd(), member))
+        when(passwordService.updatePwd(memberModifyReqDto.getCurrentPwd(), memberModifyReqDto.getNewPwd(), memberEntity))
                 .thenReturn(true)
         ;
 
@@ -343,7 +344,7 @@ class MemberServiceTest {
                 .build()
                 ;
 
-        Member member = Member.builder()
+        MemberEntity memberEntity = MemberEntity.builder()
                 .memberNo(MEMBER_NO)
                 .email(EMAIL)
                 .tel(TEL)
@@ -355,9 +356,9 @@ class MemberServiceTest {
 
 
         when(memberRepository.getMemberByMemberNo(anyLong()))
-                .thenReturn(member)
+                .thenReturn(memberEntity)
         ;
-        when(passwordService.updatePwd(memberModifyReqDto.getCurrentPwd(),memberModifyReqDto.getNewPwd(),member))
+        when(passwordService.updatePwd(memberModifyReqDto.getCurrentPwd(),memberModifyReqDto.getNewPwd(), memberEntity))
                 .thenReturn(true)
         ;
 
@@ -383,7 +384,7 @@ class MemberServiceTest {
                 .build()
                 ;
 
-        Member member = Member.builder()
+        MemberEntity memberEntity = MemberEntity.builder()
                 .memberNo(MEMBER_NO)
                 .email(EMAIL)
                 .tel(TEL+123)
@@ -394,7 +395,7 @@ class MemberServiceTest {
                 ;
 
         when(memberRepository.getMemberByMemberNo(anyLong()))
-                .thenReturn(member)
+                .thenReturn(memberEntity)
         ;
 
         //when

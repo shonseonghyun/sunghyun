@@ -1,9 +1,9 @@
 package com.sunghyun.member.application;
 
-import com.sunghyun.feign.PlabExternalOpenFeignClient;
 import com.sunghyun.member.application.dto.res.MemberValidIdResDto;
+import com.sunghyun.member.application.service.MemberService;
 import com.sunghyun.member.domain.exception.PendingIdException;
-import com.sunghyun.member.domain.handler.MemberIdPendingHandler;
+import com.sunghyun.member.application.port.MemberIdPendingRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,13 +21,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 //feign설정이 없어 에러
 @SpringBootTest
 @ActiveProfiles("test")
-public class MemberServiceRedisIntegrationTest {
+public class MemberEntityServiceRedisIntegrationTest {
 
     @Autowired
     private MemberService memberService;
 
     @Autowired
-    private MemberIdPendingHandler memberIdPendingHandler;
+    private MemberIdPendingRepository memberIdPendingRepository;
 
     @Value("${member.valid-id.prefix}")
     private String pendingIdPrefix;
@@ -42,7 +42,7 @@ public class MemberServiceRedisIntegrationTest {
     void tearDown() {
         // 테스트가 끝날 때마다 깔끔하게 청소
         final String key = pendingIdPrefix+"*";
-        memberIdPendingHandler.deleteAllPendingIds(key);
+        memberIdPendingRepository.deleteAllPendingIds(key);
     }
 
     @Test
@@ -53,7 +53,7 @@ public class MemberServiceRedisIntegrationTest {
         final MemberValidIdResDto memberValidIdResDto = memberService.validMemberId(ID);
 
         // then: 실제로 Redis에 데이터가 들어가 있는지 확인
-        Object value = memberIdPendingHandler.getPendingValue(key);
+        Object value = memberIdPendingRepository.getPendingValue(key);
         assertThat(value).isEqualTo(memberValidIdResDto.getPendingToken());
 
         // TTL(만료시간)이 설정되었는지 확인 (대략 300초 근처여야 함)

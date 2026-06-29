@@ -1,5 +1,6 @@
-package com.sunghyun.member.infrastructure.repository;
+package com.sunghyun.member.adpater.out.persistence.repository;
 
+import com.sunghyun.member.adpater.out.persistence.entity.MemberEntity;
 import com.sunghyun.member.domain.model.Member;
 import com.sunghyun.member.domain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,18 +14,19 @@ public class MemberRepositoryImpl implements MemberRepository {
     private final SpringJpaMemberRepository springJpaMemberRepository;
 
     @Override
-    public Member save(final Member member) {
-        return springJpaMemberRepository.save(member);
+    public Member save(final Member memberEntity) {
+        return springJpaMemberRepository.save(MemberEntity.fromDomain(memberEntity))
+                .toDomain();
     }
 
     @Override
-    public Member getMemberByMemberNo(final Long memberNo) {
+    public Optional<Member> getMemberByMemberNo(final Long memberNo) {
         return springJpaMemberRepository.findById(memberNo)
-                .orElse(null);
+                .map(MemberEntity::toDomain);
     }
 
     @Override
-    public Member updateMember(final Member member) {
+    public Member updateMember(final Member memberEntity) {
         return null;
     }
 
@@ -34,12 +36,8 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public boolean isExistMemberById(final String id) {
-        return springJpaMemberRepository.findMemberById(id).isPresent();
-    }
-
-    @Override
     public Optional<Member> getMemberById(final String id) {
-        return springJpaMemberRepository.findMemberById(id);
+        return springJpaMemberRepository.findMemberById(id)
+                .map(MemberEntity::toDomain);
     }
 }

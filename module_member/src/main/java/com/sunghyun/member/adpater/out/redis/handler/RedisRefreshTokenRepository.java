@@ -1,6 +1,6 @@
-package com.sunghyun.member.infrastructure.handler;
+package com.sunghyun.member.adpater.out.redis.handler;
 
-import com.sunghyun.member.domain.handler.RefreshTokenHandler;
+import com.sunghyun.member.application.port.RefreshTokenRepository;
 import com.sunghyun.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class RedisRefreshTokenHandler implements RefreshTokenHandler {
+public class RedisRefreshTokenRepository implements RefreshTokenRepository {
     private final RedisService redisService;
 
     @Value("${member.refresh.token.prefix}")

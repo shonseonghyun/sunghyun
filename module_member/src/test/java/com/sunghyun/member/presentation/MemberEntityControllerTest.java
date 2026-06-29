@@ -1,7 +1,8 @@
 package com.sunghyun.member.presentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sunghyun.member.application.MemberService;
+import com.sunghyun.member.adpater.in.web.MemberController;
+import com.sunghyun.member.application.service.MemberService;
 import com.sunghyun.member.application.dto.req.MemberModifyReqDto;
 import com.sunghyun.member.application.dto.req.MemberRegisterReqDto;
 import com.sunghyun.member.application.dto.res.MemberResDto;
@@ -27,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @WebMvcTest(MemberController.class)
-class MemberControllerTest {
+class MemberEntityControllerTest {
 
     @MockBean
     private MemberService memberService;

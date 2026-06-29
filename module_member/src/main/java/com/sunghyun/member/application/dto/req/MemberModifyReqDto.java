@@ -2,7 +2,7 @@ package com.sunghyun.member.application.dto.req;
 
 import com.sunghyun.annotation.NotNullWithMsg;
 import com.sunghyun.member.domain.enums.Gender;
-import com.sunghyun.member.domain.model.Member;
+import com.sunghyun.member.adpater.out.persistence.entity.MemberEntity;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -33,10 +33,10 @@ public class MemberModifyReqDto {
 
 //    private String photo;
 
-    public Member toDomain() {
+    public MemberEntity toDomain() {
         //upateable 등록된 필드들로만 도메인 만들도록 자동화 못하나?
         //왜냐면 매번 수정dto생길때마다 이렇게 길게 써야할텐데..
-        return Member.builder()
+        return MemberEntity.builder()
                 .memberNo(this.memberNo)
                 .pwd(this.newPwd) // DTO의 newPwd를 엔티티의 pwd 필드로 매핑
                 .email(this.email)

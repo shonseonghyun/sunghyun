@@ -15,7 +15,7 @@ public class CustomPasswordEncoder {
         return passwordEncoder.encode(rawPassword);
     }
 
-    public boolean matches(String inputPassword, String encodedPassword) {
-        return passwordEncoder.matches(inputPassword,encodedPassword);
+    public boolean matches(String inputRawPassword, String encodedPassword) {
+        return passwordEncoder.matches(inputRawPassword,encodedPassword);
     }
 }

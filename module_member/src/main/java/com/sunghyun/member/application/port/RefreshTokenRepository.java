@@ -1,6 +1,6 @@
-package com.sunghyun.member.domain.handler;
+package com.sunghyun.member.application.port;
 
-public interface RefreshTokenHandler {
+public interface RefreshTokenRepository {
     void lock(String id, String refreshToken);
     Object getRefreshToken(String id);
 }

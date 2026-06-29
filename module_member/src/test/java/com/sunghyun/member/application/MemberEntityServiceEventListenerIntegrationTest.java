@@ -2,8 +2,9 @@ package com.sunghyun.member.application;
 
 import com.sunghyun.member.application.dto.req.MemberRegisterReqDto;
 import com.sunghyun.member.application.dto.res.MemberResDto;
+import com.sunghyun.member.application.service.MemberService;
 import com.sunghyun.member.domain.enums.Gender;
-import com.sunghyun.member.domain.handler.MemberIdPendingHandler;
+import com.sunghyun.member.application.port.MemberIdPendingRepository;
 import com.sunghyun.member.domain.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
-public class MemberServiceEventListenerIntegrationTest {
+public class MemberEntityServiceEventListenerIntegrationTest {
     @Autowired
     private MemberService memberService;
 
@@ -30,7 +31,7 @@ public class MemberServiceEventListenerIntegrationTest {
     private ApplicationEventPublisher applicationEventPublisher;
 
     @MockBean
-    private MemberIdPendingHandler memberIdPendingHandler;
+    private MemberIdPendingRepository memberIdPendingRepository;
 
     @Value("${member.valid-id.prefix}")
     private String pendingIdPrefix;
@@ -56,10 +57,10 @@ public class MemberServiceEventListenerIntegrationTest {
         //given
         String uniqueId = "failTestId";
         MemberRegisterReqDto memberRegisterReqDto = createMemberRegisterReqDto(uniqueId);
-        when(memberIdPendingHandler.getPendingValue(anyString()))
+        when(memberIdPendingRepository.getPendingValue(anyString()))
                 .thenReturn(PENDING_TOKEN);
         doThrow(new RuntimeException("Redis 연결 실패!!!"))
-                .when(memberIdPendingHandler).deletePendingId(anyString());
+                .when(memberIdPendingRepository).deletePendingId(anyString());
 //        doThrow(new RuntimeException("Redis 연결 실패!!!"))
 //                .when(eventPublisher).publishEvent(new MemberRegisteredEvent(ID));
 
@@ -73,7 +74,7 @@ public class MemberServiceEventListenerIntegrationTest {
         // 메인 트랜잭션이 성공했으므로 DB에 데이터가 있어야 함
         assertThat(memberRepository.isExistMemberById(uniqueId)).isEqualTo(true);
         // 리스너가 예외를 뱉는 deletePendingId를 실제로 호출했는지 검증
-        verify(memberIdPendingHandler,times(1)).deletePendingId(anyString());
+        verify(memberIdPendingRepository,times(1)).deletePendingId(anyString());
 //        verify(eventPublisher,times(1)).publishEvent(new MemberRegisteredEvent(ID));
     }
 
@@ -83,16 +84,16 @@ public class MemberServiceEventListenerIntegrationTest {
         //given
         String uniqueId = "successTestId";
         MemberRegisterReqDto memberRegisterReqDto = createMemberRegisterReqDto(uniqueId);
-        when(memberIdPendingHandler.getPendingValue(anyString()))
+        when(memberIdPendingRepository.getPendingValue(anyString()))
                 .thenReturn(PENDING_TOKEN);
-        doNothing().when(memberIdPendingHandler).deletePendingId(anyString());
+        doNothing().when(memberIdPendingRepository).deletePendingId(anyString());
 
         //when
         memberService.registerMember(memberRegisterReqDto);
 
         //then
         assertThat(memberRepository.isExistMemberById(uniqueId)).isEqualTo(true);
-        verify(memberIdPendingHandler,times(1)).deletePendingId(anyString());
+        verify(memberIdPendingRepository,times(1)).deletePendingId(anyString());
     }
 
     private MemberRegisterReqDto createMemberRegisterReqDto(final String id){

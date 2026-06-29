@@ -1,9 +1,9 @@
 package com.sunghyun.member.infrastructure;
 
 import com.sunghyun.member.domain.enums.Gender;
-import com.sunghyun.member.domain.model.Member;
+import com.sunghyun.member.adpater.out.persistence.entity.MemberEntity;
 import com.sunghyun.member.domain.repository.MemberRepository;
-import com.sunghyun.member.infrastructure.repository.MemberRepositoryImpl;
+import com.sunghyun.member.adpater.out.persistence.repository.MemberRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(MemberRepositoryImpl.class)
-class MemberRepositoryTest {
+class MemberEntityRepositoryTest {
     // 상수는 대문자로 변경
     private static final String ID = "newId";
     private static final String PWD = "7895";
@@ -43,7 +43,7 @@ class MemberRepositoryTest {
 
     @BeforeEach
     void saveMember(){
-        Member member = Member.builder()
+        MemberEntity memberEntity = MemberEntity.builder()
                 .id(ID)
                 .pwd(PWD)
                 .email(EMAIL)
@@ -53,42 +53,42 @@ class MemberRepositoryTest {
                 .gender(GENDER)
                 .build();
 
-        Member savedMember = memberRepository.save(member);
-        this.memberNo = savedMember.getMemberNo();
+        MemberEntity savedMemberEntity = memberRepository.save(memberEntity);
+        this.memberNo = savedMemberEntity.getMemberNo();
     }
 
     @Test
     void getMemberByMemberByIdNo(){
         //when
-        Member member = memberRepository.getMemberByMemberNo(memberNo);
+        MemberEntity memberEntity = memberRepository.getMemberByMemberNo(memberNo);
 
         //then
-        assertThat(member).isNotNull();
-        assertThat(member.getName()).isEqualTo(NAME);
+        assertThat(memberEntity).isNotNull();
+        assertThat(memberEntity.getName()).isEqualTo(NAME);
     }
 
     @Test
     void getMemberByWrongMemberByIdNo(){
         //when
-        Member member = memberRepository.getMemberByMemberNo(WRONG_MEMBER_NO);
+        MemberEntity memberEntity = memberRepository.getMemberByMemberNo(WRONG_MEMBER_NO);
 
         //then
-        assertThat(member).isNull();
+        assertThat(memberEntity).isNull();
     }
 
     @Test
     void updateMember(){
         //given
-        Member member = memberRepository.getMemberByMemberNo(memberNo);
+        MemberEntity memberEntity = memberRepository.getMemberByMemberNo(memberNo);
 
         //when
-        member.setGender(CHANGED_GENDER);
-        memberRepository.save(member);
+        memberEntity.setGender(CHANGED_GENDER);
+        memberRepository.save(memberEntity);
 
         //then
-        Member updatedMember = memberRepository.getMemberByMemberNo(memberNo);
-        assertThat(updatedMember.getName()).isEqualTo(NAME);
-        assertThat(updatedMember.getGender()).isEqualTo(CHANGED_GENDER);
+        MemberEntity updatedMemberEntity = memberRepository.getMemberByMemberNo(memberNo);
+        assertThat(updatedMemberEntity.getName()).isEqualTo(NAME);
+        assertThat(updatedMemberEntity.getGender()).isEqualTo(CHANGED_GENDER);
     }
 
     @Test
@@ -97,8 +97,8 @@ class MemberRepositoryTest {
         memberRepository.delMember(memberNo);
 
         //then
-        Member member = memberRepository.getMemberByMemberNo(memberNo);
-        assertThat(member).isNull();
+        MemberEntity memberEntity = memberRepository.getMemberByMemberNo(memberNo);
+        assertThat(memberEntity).isNull();
     }
 
     @Test

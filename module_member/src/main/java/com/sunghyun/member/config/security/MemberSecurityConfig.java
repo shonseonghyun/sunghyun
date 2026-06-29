@@ -1,4 +1,4 @@
-package com.sunghyun.member.infrastructure.security;
+package com.sunghyun.member.config.security;
 
 import com.sunghyun.config.authorize.Role;
 import com.sunghyun.config.authorize.SecurityMatcherChain;

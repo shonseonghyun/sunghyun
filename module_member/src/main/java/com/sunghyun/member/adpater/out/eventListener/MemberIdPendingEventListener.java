@@ -1,7 +1,7 @@
-package com.sunghyun.member.infrastructure.eventListener;
+package com.sunghyun.member.adpater.out.eventListener;
 
 import com.sunghyun.member.domain.event.MemberRegisteredEvent;
-import com.sunghyun.member.domain.handler.MemberIdPendingHandler;
+import com.sunghyun.member.application.port.MemberIdPendingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -13,13 +13,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 public class MemberIdPendingEventListener {
-    private final MemberIdPendingHandler memberIdPendingHandler;
+    private final MemberIdPendingRepository memberIdPendingRepository;
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(final MemberRegisteredEvent event) {
         final String id = event.getId();
-        memberIdPendingHandler.deletePendingId(id);
+        memberIdPendingRepository.deletePendingId(id);
     }
 }

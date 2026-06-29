@@ -1,4 +1,4 @@
-package com.sunghyun.member.domain.model;
+package com.sunghyun.member.adpater.out.persistence.entity;
 
 import com.sunghyun.config.authorize.Role;
 import jakarta.persistence.*;
@@ -14,12 +14,13 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @NoArgsConstructor
-public class MemberRole {
+public class MemberRoleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="member_role_no")
     private Long memberRoleNo;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 }

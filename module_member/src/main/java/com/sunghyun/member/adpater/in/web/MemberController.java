@@ -1,7 +1,7 @@
-package com.sunghyun.member.presentation;
+package com.sunghyun.member.adpater.in.web;
 
-import com.sunghyun.member.application.MemberService;
-import com.sunghyun.member.application.AuthService;
+import com.sunghyun.member.application.service.MemberService;
+import com.sunghyun.member.application.service.AuthService;
 import com.sunghyun.member.application.dto.req.*;
 import com.sunghyun.member.application.dto.res.MemberLoginResDto;
 import com.sunghyun.member.application.dto.res.MemberResDto;

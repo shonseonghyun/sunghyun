@@ -2,10 +2,9 @@ package com.sunghyun.member.application.dto.req;
 
 import com.sunghyun.annotation.DtoOnly;
 import com.sunghyun.annotation.NotBlankWithMsg;
-import com.sunghyun.member.domain.enums.Gender;
 import com.sunghyun.config.authorize.Role;
+import com.sunghyun.member.domain.enums.Gender;
 import com.sunghyun.member.domain.model.Member;
-import com.sunghyun.member.domain.model.MemberRole;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -52,14 +51,8 @@ public class MemberRegisterReqDto {
 //    private String photo;
 
     public Member toDomain() {
-        List<MemberRole> defaultRoles = new ArrayList<>();
-
-        defaultRoles.add(
-                MemberRole
-                        .builder()
-                    .role(Role.USER)
-                    .build()
-        );
+        List<Role> defaultRoles = new ArrayList<>();
+        defaultRoles.add(Role.USER);
 
         return Member.builder()
                 .id(this.id)
