@@ -1,4 +1,4 @@
-package com.sunghyun.member.application.dto.req;
+package com.sunghyun.member.application.dto.res;
 
 import com.sunghyun.dto.TokenResDto;
 import lombok.AllArgsConstructor;

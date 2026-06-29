@@ -58,7 +58,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    void getMemberByMemberNo(){
+    void getMemberByMemberByIdNo(){
         //when
         Member member = memberRepository.getMemberByMemberNo(memberNo);
 
@@ -68,7 +68,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    void getMemberByWrongMemberNo(){
+    void getMemberByWrongMemberByIdNo(){
         //when
         Member member = memberRepository.getMemberByMemberNo(WRONG_MEMBER_NO);
 

@@ -39,7 +39,7 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public Optional<Member> getMember(final String id) {
+    public Optional<Member> getMemberById(final String id) {
         return springJpaMemberRepository.findMemberById(id);
     }
 }

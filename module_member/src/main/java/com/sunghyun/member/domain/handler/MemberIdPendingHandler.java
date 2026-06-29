@@ -1,10 +1,10 @@
 package com.sunghyun.member.domain.handler;
 
 public interface MemberIdPendingHandler {
-    boolean lock(String key,String value,Long timeOut);
-    void unlock(String id);
-    void deletePendingId(String key);
-    Object getPendingValue(String key);
-    void deleteAllPendingIds(final String key);
+    boolean lock(final String id,final String value);
+    void unlock(final String id);
+    void deletePendingId(final String id);
+    Object getPendingValue(final String id);
+    void deleteAllPendingIds(final String id);
 
 }

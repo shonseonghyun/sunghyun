@@ -9,7 +9,4 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MemberValidIdResDto {
     private String pendingToken;
-
-    /** 토큰 유효 시간 (단위: 분) */
-    private Long timeout;
 }

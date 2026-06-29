@@ -10,5 +10,5 @@ public interface MemberRepository {
     Member updateMember(final Member member);
     void delMember(final Long memberNo);
     boolean isExistMemberById(final String id);
-    Optional<Member> getMember(final String id);
+    Optional<Member> getMemberById(final String id);
 }
