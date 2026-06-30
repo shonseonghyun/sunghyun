@@ -94,7 +94,7 @@ class MemberEntityRepositoryTest {
     @Test
     void delMember(){
         //when
-        memberRepository.delMember(memberNo);
+        memberRepository.deleteMember(memberNo);
 
         //then
         MemberEntity memberEntity = memberRepository.getMemberByMemberNo(memberNo);

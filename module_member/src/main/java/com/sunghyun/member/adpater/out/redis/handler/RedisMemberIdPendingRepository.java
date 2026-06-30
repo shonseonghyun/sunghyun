@@ -1,10 +1,12 @@
 package com.sunghyun.member.adpater.out.redis.handler;
 
-import com.sunghyun.member.application.port.MemberIdPendingRepository;
+import com.sunghyun.member.application.port.repository.MemberIdPendingRepository;
 import com.sunghyun.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -34,9 +36,9 @@ public class RedisMemberIdPendingRepository implements MemberIdPendingRepository
     }
 
     @Override
-    public Object getPendingValue(final String id) {
+    public Optional<Object> getPendingValue(final String id) {
         String key = getKey(id);
-        return redisService.getValueByKey(key);
+        return Optional.ofNullable(redisService.getValueByKey(key));
     }
 
     @Override

@@ -15,10 +15,10 @@ public class MemberSecurityConfig {
 
         securityMatcherChain.addAll(
                 SecurityRequestMatcher.patterns(
-                        "/member/login",
-                        "/member/register",
                         "/member/valid-id/**",
-                        "/member/reissue"
+                        "/member/reissue",
+                        "/member/auth",
+                        "/member"
                 ).permitAll(),
                 SecurityRequestMatcher.patterns(
                         "/member/**"

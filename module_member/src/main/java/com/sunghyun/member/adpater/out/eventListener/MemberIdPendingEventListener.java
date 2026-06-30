@@ -1,7 +1,7 @@
 package com.sunghyun.member.adpater.out.eventListener;
 
 import com.sunghyun.member.domain.event.MemberRegisteredEvent;
-import com.sunghyun.member.application.port.MemberIdPendingRepository;
+import com.sunghyun.member.application.port.repository.MemberIdPendingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

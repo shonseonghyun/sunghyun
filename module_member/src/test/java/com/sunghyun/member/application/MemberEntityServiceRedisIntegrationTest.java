@@ -3,7 +3,7 @@ package com.sunghyun.member.application;
 import com.sunghyun.member.application.dto.res.MemberValidIdResDto;
 import com.sunghyun.member.application.service.MemberService;
 import com.sunghyun.member.domain.exception.PendingIdException;
-import com.sunghyun.member.application.port.MemberIdPendingRepository;
+import com.sunghyun.member.application.port.repository.MemberIdPendingRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

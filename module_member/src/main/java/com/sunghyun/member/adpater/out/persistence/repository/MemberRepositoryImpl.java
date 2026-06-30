@@ -31,7 +31,7 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public void delMember(final Long memberNo) {
+    public void deleteMember(final Long memberNo) {
         springJpaMemberRepository.deleteById(memberNo);
     }
 

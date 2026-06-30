@@ -4,7 +4,7 @@ import com.sunghyun.member.application.dto.req.MemberRegisterReqDto;
 import com.sunghyun.member.application.dto.res.MemberResDto;
 import com.sunghyun.member.application.service.MemberService;
 import com.sunghyun.member.domain.enums.Gender;
-import com.sunghyun.member.application.port.MemberIdPendingRepository;
+import com.sunghyun.member.application.port.repository.MemberIdPendingRepository;
 import com.sunghyun.member.domain.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

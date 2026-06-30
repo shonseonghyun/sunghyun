@@ -1,10 +1,12 @@
 package com.sunghyun.member.adpater.out.redis.handler;
 
-import com.sunghyun.member.application.port.RefreshTokenRepository;
+import com.sunghyun.member.application.port.repository.RefreshTokenRepository;
 import com.sunghyun.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -24,9 +26,9 @@ public class RedisRefreshTokenRepository implements RefreshTokenRepository {
     }
 
     @Override
-    public Object getRefreshToken(String id) {
+    public Optional<Object> getRefreshToken(String id) {
         final String key = getKey(id);
-        return redisService.getValueByKey(key);
+        return Optional.ofNullable(redisService.getValueByKey(key));
     }
 
     private String getKey(String id){

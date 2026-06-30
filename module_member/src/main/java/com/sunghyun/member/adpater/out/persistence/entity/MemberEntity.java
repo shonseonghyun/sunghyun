@@ -56,10 +56,12 @@ public class MemberEntity {
 
     @OneToMany(
             cascade = {
-                    CascadeType.PERSIST, //Member save 시 저장 확인 완료
+                    CascadeType.PERSIST, //Member save 시 저장 확인 완료,
+                    CascadeType.REMOVE
             }
+//            orphanRemoval = true
     )
-    @JoinColumn(name="member_no")
+    @JoinColumn(name="member_no",nullable = false)
     private List<MemberRoleEntity> roles;
 
     public Member toDomain() {

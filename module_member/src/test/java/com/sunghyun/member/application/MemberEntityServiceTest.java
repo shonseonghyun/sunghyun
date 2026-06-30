@@ -8,7 +8,7 @@ import com.sunghyun.member.application.service.MemberService;
 import com.sunghyun.member.domain.enums.Gender;
 import com.sunghyun.member.domain.event.MemberRegisteredEvent;
 import com.sunghyun.member.domain.exception.*;
-import com.sunghyun.member.application.port.MemberIdPendingRepository;
+import com.sunghyun.member.application.port.repository.MemberIdPendingRepository;
 import com.sunghyun.member.adpater.out.persistence.entity.MemberEntity;
 import com.sunghyun.member.domain.repository.MemberRepository;
 import com.sunghyun.member.domain.service.PasswordService;

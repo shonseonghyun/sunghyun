@@ -1,4 +1,4 @@
-package com.sunghyun.member.application.port;
+package com.sunghyun.member.application.port.usecase;
 
 import com.sunghyun.member.application.dto.req.TokenReissueReqDto;
 import com.sunghyun.member.application.dto.res.MemberLoginResDto;

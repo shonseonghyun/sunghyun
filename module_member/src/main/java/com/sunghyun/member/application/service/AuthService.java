@@ -9,9 +9,9 @@ import com.sunghyun.member.application.dto.req.TokenReissueReqDto;
 import com.sunghyun.member.application.dto.res.MemberLoginResDto;
 import com.sunghyun.member.application.dto.res.MemberValidIdResDto;
 import com.sunghyun.member.application.dto.res.TokenReissueResDto;
-import com.sunghyun.member.application.port.AuthUseCase;
-import com.sunghyun.member.application.port.MemberIdPendingRepository;
-import com.sunghyun.member.application.port.RefreshTokenRepository;
+import com.sunghyun.member.application.port.usecase.AuthUseCase;
+import com.sunghyun.member.application.port.repository.MemberIdPendingRepository;
+import com.sunghyun.member.application.port.repository.RefreshTokenRepository;
 import com.sunghyun.member.domain.exception.MemberIdExistException;
 import com.sunghyun.member.domain.exception.PasswordMismatchException;
 import com.sunghyun.member.domain.exception.PendingIdException;
@@ -66,7 +66,6 @@ public class AuthService implements AuthUseCase {
         }
     }
 
-    // redis는 트랜잭션 어떻게 해야할까?
     @Override
     public MemberLoginResDto login(final String id,final String inputRawPwd){
         // 회원 조회
@@ -92,7 +91,6 @@ public class AuthService implements AuthUseCase {
                 ;
     }
 
-    // redis는 트랜잭션 어떻게 해야할까?
     @Override
     public TokenReissueResDto reissueAccessToken(final TokenReissueReqDto tokenReissueReqDto) {
         final String id = tokenReissueReqDto.getId();
@@ -101,16 +99,10 @@ public class AuthService implements AuthUseCase {
         Member selectedMember = memberRepository.getMemberById(id)
                 .orElseThrow(()->new MemberNotFoundException(ErrorCode.M000));
 
-        // 저장소 내 refreshToken 조회
-        Object selectedRefreshToken = refreshTokenRepository.getRefreshToken(id);
-
-        // refresh 토큰 검증
-        if(selectedRefreshToken == null){
-            throw new InvalidTokenException(ErrorCode.F000);
-        }
-        if(!selectedRefreshToken.equals(tokenReissueReqDto.getRefreshToken())){
-            throw new InvalidTokenException(ErrorCode.F000);
-        }
+        // refreshToken 검증
+        refreshTokenRepository.getRefreshToken(id)
+                .filter(refreshToken->refreshToken.equals(tokenReissueReqDto.getRefreshToken()))
+                .orElseThrow(()->new InvalidTokenException(ErrorCode.M009));
 
         // accessToken 재발행
         TokenResDto tokenResDto = jwtProvider.reissueAccessToken(
