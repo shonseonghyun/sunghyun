@@ -14,6 +14,7 @@ import java.util.List;
 @Builder
 @Getter
 public class TokenReqDto {
+    private Long memberNo;
     private String id;
     private List<Role> roles;
 }

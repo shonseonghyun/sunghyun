@@ -96,11 +96,10 @@ public class JwtProvider {
     }
 
     private String generateAccessToken(TokenReqDto tokenReqDto){
-        // 1. 유저 식별자(ID) 추출
+        // 1. id,memberNo,role 추출
         final String id = tokenReqDto.getId();
-
-        // 2. 권한 목록을 콤마(,) 기준으로 파싱하여 문자열로 가공 (ex: "ROLE_USER,ROLE_ADMIN")
-        String roles = tokenReqDto.getRoles().stream()
+        final Long memberNo = tokenReqDto.getMemberNo();
+        final String roles = tokenReqDto.getRoles().stream()
                 .map(role -> "ROLE_"+role)
                 .collect(Collectors.joining(","))
                 ;
@@ -109,11 +108,12 @@ public class JwtProvider {
         Date accessTokenExpiresIn = new Date(now + accessTokenExpirationTime);
 
         // 3. 0.12.x 관례에 맞게 암호화 알고리즘에 쓰일 SecretKey 객체 생성
-        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        SecretKey key = getSigningKey();
 
         // 4. JJWT 0.12.x 빌더 패턴 적용하여 토큰 생성
         String accessToken = Jwts.builder()
-                .subject(id)                    // 토큰 주인 명시 (sub)
+                .subject(id)
+                .claim("memberNo", memberNo)
                 .claim("roles", roles)           // 커스텀 클레임으로 권한 정보 주입
                 .issuedAt(new Date(now))              // 발행 시간 (iat)
                 .expiration(accessTokenExpiresIn)     // 만료 시간 (exp) -> 기존 setExpiration에서 변경됨
@@ -162,10 +162,13 @@ public class JwtProvider {
 
         // 4. Principal 자리에 넣을 유저 식별자(ID)
         final String id = claims.getSubject();
+        final Long memberNo = claims.get("memberNo",Long.class);
 
         // 5. 시큐리티 표준 인증 객체 생성 (비밀번호는 이미 토큰 검증이 끝나서 안 담아도 되므로 null 처리)
         // 세 번째 인자인 authorities까지 반드시 넘겨줘야 시큐리티가 인증 완료 상태로 판단
-        return new UsernamePasswordAuthenticationToken(id, null, roles);
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(id, null, roles);
+        authenticationToken.setDetails(memberNo);
+        return authenticationToken;
     }
 
 
@@ -174,7 +177,7 @@ public class JwtProvider {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    private Claims parseToken(final String token){
+    public Claims parseToken(final String token){
         try {
             SecretKey key = getSigningKey();
             return Jwts.parser()

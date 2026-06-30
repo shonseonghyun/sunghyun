@@ -1,5 +1,6 @@
 package com.sunghyun.plab.subscription.adapter.in.web;
 
+import com.sunghyun.annotation.AuthMember;
 import com.sunghyun.plab.subscription.application.port.in.MatchSubscriptionUseCase;
 import com.sunghyun.plab.subscription.application.port.in.dto.MatchSubscriptionModReqDto;
 import com.sunghyun.plab.subscription.application.port.in.dto.MatchSubscriptionRegReqDto;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +22,10 @@ public class MatchSubscriptionController {
 
     private final MatchSubscriptionUseCase matchSubscriptionUseCase;
 
+    @GetMapping("{subscriptionNo}")
+    public GlobalResponse getMatchSubscription(@PathVariable final Long subscriptionNo, @AuthMember Object authMember) {
+        return GlobalResponse.of(ErrorCode.S000);
+    }
 
     @PostMapping("")
     public GlobalResponse<MatchSubscriptionRegResDto> registerMatchSubscription(
@@ -32,7 +38,7 @@ public class MatchSubscriptionController {
 
     @PutMapping("/{subscriptionNo}")
     public GlobalResponse<MatchSubscriptionModResDto> modifyMatchSubscription(
-            @PathVariable("subscriptionNo") final Long subscriptionNo,
+            @PathVariable final Long subscriptionNo,
             @Valid @RequestBody final MatchSubscriptionModReqDto dto
     )
     {
