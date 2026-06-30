@@ -1,23 +1,25 @@
 package com.sunghyun.member.adpater.out.redis.handler;
 
 import com.sunghyun.member.application.port.repository.MemberIdPendingRepository;
+import com.sunghyun.redis.AbstractRedisRepository;
 import com.sunghyun.redis.RedisService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 @Component
-@RequiredArgsConstructor
-public class RedisMemberIdPendingRepository implements MemberIdPendingRepository {
-    private final RedisService redisService;
+public class RedisMemberIdPendingRepository extends AbstractRedisRepository implements MemberIdPendingRepository {
 
     @Value("${member.valid-id.prefix}")
     private String pendingIdPrefix;
 
     @Value("${member.valid-id.timeout}")
     private Long timeout;
+
+    public RedisMemberIdPendingRepository(RedisService redisService) {
+        super(redisService);
+    }
 
     @Override
     public boolean lock(
@@ -26,19 +28,19 @@ public class RedisMemberIdPendingRepository implements MemberIdPendingRepository
     )
     {
         String key = getKey(id);
-        return redisService.setNX(key, value, timeout);
+        return this.redisService.setNX(key, value, timeout);
     }
 
     @Override
     public void unlock(final String id) {
         String key = getKey(id);
-        redisService.delete(key);
+        delete(key);
     }
 
     @Override
-    public Optional<Object> getPendingValue(final String id) {
+    public Optional<Object> getPendingToken(final String id) {
         String key = getKey(id);
-        return Optional.ofNullable(redisService.getValueByKey(key));
+        return getValue(key);
     }
 
     @Override

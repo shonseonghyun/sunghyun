@@ -44,7 +44,7 @@ public class MemberService implements MemberUseCase {
         final String id = dto.getId();
 
         //PendingToken 검증
-        memberIdPendingRepository.getPendingValue(id)
+        memberIdPendingRepository.getPendingToken(id)
                 .filter(token -> token.equals(dto.getPendingToken()))
                 .orElseThrow(()->new NotValidatedIdException(ErrorCode.M003));
 
@@ -99,7 +99,6 @@ public class MemberService implements MemberUseCase {
         //1. 유저 조회
         memberRepository.getMemberByMemberNo(memberNo)
                 .orElseThrow(()->new MemberNotFoundException(ErrorCode.M000));
-                ;
 
         //3. 삭제
         memberRepository.deleteMember(memberNo);
