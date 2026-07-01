@@ -1,5 +1,6 @@
 package com.sunghyun.config;
 
+import com.sunghyun.dto.AuthMemberInfo;
 import com.sunghyun.dto.TokenReqDto;
 import com.sunghyun.dto.TokenResDto;
 import com.sunghyun.exceptions.InvalidTokenException;
@@ -99,6 +100,7 @@ public class JwtProvider {
         // 1. id,memberNo,role 추출
         final String id = tokenReqDto.getId();
         final Long memberNo = tokenReqDto.getMemberNo();
+        final String name = tokenReqDto.getName();
         final String roles = tokenReqDto.getRoles().stream()
                 .map(role -> "ROLE_"+role)
                 .collect(Collectors.joining(","))
@@ -114,6 +116,7 @@ public class JwtProvider {
         String accessToken = Jwts.builder()
                 .subject(id)
                 .claim("memberNo", memberNo)
+                .claim("name", name)
                 .claim("roles", roles)           // 커스텀 클레임으로 권한 정보 주입
                 .issuedAt(new Date(now))              // 발행 시간 (iat)
                 .expiration(accessTokenExpiresIn)     // 만료 시간 (exp) -> 기존 setExpiration에서 변경됨
@@ -163,11 +166,20 @@ public class JwtProvider {
         // 4. Principal 자리에 넣을 유저 식별자(ID)
         final String id = claims.getSubject();
         final Long memberNo = claims.get("memberNo",Long.class);
+        final String name = claims.get("name",String.class);
 
         // 5. 시큐리티 표준 인증 객체 생성 (비밀번호는 이미 토큰 검증이 끝나서 안 담아도 되므로 null 처리)
         // 세 번째 인자인 authorities까지 반드시 넘겨줘야 시큐리티가 인증 완료 상태로 판단
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(id, null, roles);
-        authenticationToken.setDetails(memberNo);
+
+        //
+        AuthMemberInfo authMemberInfo = AuthMemberInfo.builder()
+                        .memberNo(memberNo)
+                        .id(id)
+                        .name(name)
+                        .build();
+
+        authenticationToken.setDetails(authMemberInfo);
         return authenticationToken;
     }
 

@@ -121,6 +121,7 @@ public class AuthService implements AuthUseCase {
         return TokenReqDto.builder()
                 .memberNo(member.getMemberNo())
                 .id(member.getId())
+                .name(member.getName())
                 .roles(member.getRoles())
                 .build()
                 ;
