@@ -76,7 +76,7 @@ public class PlabMatch {
 
         //등록 요청한 매치가 이미 지난 매치인 경우
         if (ApiUtils.isPastSchedule(result.getSchedule())) {
-            throw new InvalidPlabMatchException(ErrorCode.P03); // 지난 매치 에러 코드
+            throw new InvalidPlabMatchException(ErrorCode.P04); // 지난 매치 에러 코드
         }
 
         PlabMatch plabMatch = PlabMatch.builder()
