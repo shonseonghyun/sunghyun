@@ -21,7 +21,7 @@ public class SecurityRequestMatcherHelper {
             }
         }
 
-        return auth;
+        return auth.anyRequest().authenticated();
     }
 
     private void toAuthorizedRequestFrom(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth, SecurityRequestMatcher requestMatcher){
