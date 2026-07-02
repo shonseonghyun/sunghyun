@@ -166,4 +166,32 @@ public class ApiUtils {
         // 서버 시간대와 관계없이 정확한 비교를 위해 OffsetDateTime.now() 사용
         return matchTime.isBefore(OffsetDateTime.now());
     }
+
+    /**
+     * 인입된 년월(yyyyMM) 문자열을 기준으로 해당 월의 시작일(yyyyMMdd)을 반환합니다.
+     * 인입값이 null이거나 공백이면 현재 시스템 날짜의 년월을 기준으로 동작합니다.
+     * * @param month 년월 문자열 (예: "202607", null, "")
+     * @return yyyyMMdd 형식의 시작일 문자열 (예: "20260701")
+     */
+    public static String getStartOfMonth(String month) {
+        java.time.YearMonth targetMonth = (month == null || month.isBlank())
+                ? java.time.YearMonth.now()
+                : java.time.YearMonth.parse(month, DateTimeFormatter.ofPattern("yyyyMM"));
+
+        return targetMonth.atDay(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    /**
+     * 인입된 년월(yyyyMM) 문자열을 기준으로 해당 월의 마지막 끝일(yyyyMMdd)을 반환합니다.
+     * 인입값이 null이거나 공백이면 현재 시스템 날짜의 년월을 기준으로 동작합니다.
+     * * @param month 년월 문자열 (예: "202607", null, "")
+     * @return yyyyMMdd 형식의 끝일 문자열 (예: "20260731", 윤년일 경우 "20260229" 등 자동 계산)
+     */
+    public static String getEndOfMonth(String month) {
+        java.time.YearMonth targetMonth = (month == null || month.isBlank())
+                ? java.time.YearMonth.now()
+                : java.time.YearMonth.parse(month, DateTimeFormatter.ofPattern("yyyyMM"));
+
+        return targetMonth.atEndOfMonth().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
 }

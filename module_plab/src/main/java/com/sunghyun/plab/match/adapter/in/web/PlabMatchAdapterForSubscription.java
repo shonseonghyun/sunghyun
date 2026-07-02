@@ -7,6 +7,8 @@ import com.sunghyun.plab.subscription.application.port.out.external.PlabMatchOut
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class PlabMatchAdapterForSubscription implements PlabMatchOutPort {
@@ -19,7 +21,12 @@ public class PlabMatchAdapterForSubscription implements PlabMatchOutPort {
     }
 
     @Override
-    public PlabMatchResDto getPlabMatchByPlabMatchNo(final Long plabMatchNo) {
+    public PlabMatchResDto getPlabMatch(final Long plabMatchNo) {
         return plabMatchUseCase.getPlabMatchByPlabMatchNo(plabMatchNo);
+    }
+
+    @Override
+    public List<PlabMatchResDto> getPlabMatches(String startDt, String endDt) {
+        return plabMatchUseCase.getPlabMatches(startDt,endDt);
     }
 }

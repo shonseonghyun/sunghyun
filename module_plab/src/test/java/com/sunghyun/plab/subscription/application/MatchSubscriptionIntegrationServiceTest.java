@@ -76,7 +76,7 @@ class MatchSubscriptionIntegrationServiceTest {
         //when,then
         assertThatThrownBy(()->matchSubscriptionService.registerMatchSubscription(dto))
                 .isInstanceOf(ExistMatchSubscriptionException.class);
-        assertThat(plabMatchOutPort.getPlabMatchByPlabMatchNo(PLAB_MATCH_NO))
+        assertThat(plabMatchOutPort.getPlabMatch(PLAB_MATCH_NO))
                 .isNotNull();
         assertThat(matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNoAndNotiType(MEMBER_NO,PLAB_MATCH_NO,NOTI_TYPE))
                 .isEmpty();
@@ -112,7 +112,7 @@ class MatchSubscriptionIntegrationServiceTest {
         //then
         assertThat(matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNoAndNotiType(MEMBER_NO,PLAB_MATCH_NO,NOTI_TYPE))
                 .isPresent();
-        assertThat(plabMatchOutPort.getPlabMatchByPlabMatchNo(PLAB_MATCH_NO))
+        assertThat(plabMatchOutPort.getPlabMatch(PLAB_MATCH_NO))
                 .isNotNull();
     }
 
@@ -159,7 +159,7 @@ class MatchSubscriptionIntegrationServiceTest {
         // 2. 핵심 검증: 플랩매치 생성 로직(Facade)이 정상 작동했다면,
         // 실제 DB나 Mock을 통해 확인했을 때 생성 로직의 결과가 유효해야 함
         // (이 예제에서는 Facade가 락을 잘 잡았다면 에러 없이 모두 성공했을 것임)
-        assertThat(plabMatchOutPort.getPlabMatchByPlabMatchNo(PLAB_MATCH_NO)).isNotNull();
+        assertThat(plabMatchOutPort.getPlabMatch(PLAB_MATCH_NO)).isNotNull();
     }
 
     private MatchSubscriptionRegReqDto createDto() {

@@ -5,6 +5,8 @@ import com.sunghyun.plab.subscription.application.port.out.dto.PlabMatchResDto;
 import com.sunghyun.plab.subscription.application.port.out.external.PlabMatchOutPort;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 //@Component
 @RequiredArgsConstructor
 public class PlabMatchOpenFeignClientAdapter implements PlabMatchOutPort {
@@ -24,7 +26,12 @@ public class PlabMatchOpenFeignClientAdapter implements PlabMatchOutPort {
     }
 
     @Override
-    public PlabMatchResDto getPlabMatchByPlabMatchNo(Long plabMatchNo) {
+    public PlabMatchResDto getPlabMatch(Long plabMatchNo) {
         return null;
+    }
+
+    @Override
+    public List<PlabMatchResDto> getPlabMatches(String startDt, String endDt) {
+        return List.of();
     }
 }

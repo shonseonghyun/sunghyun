@@ -1,12 +1,14 @@
 package com.sunghyun.plab.subscription.adapter.out.persistence.repository;
 
 import com.sunghyun.plab.subscription.adapter.out.persistence.MatchSubscriptionMapper;
+import com.sunghyun.plab.subscription.adapter.out.persistence.entity.MatchSubscriptionEntity;
 import com.sunghyun.plab.subscription.application.port.out.persistence.MatchSubscriptionRepository;
 import com.sunghyun.plab.subscription.domain.enums.NotiType;
 import com.sunghyun.plab.subscription.domain.model.MatchSubscription;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -14,6 +16,15 @@ import java.util.Optional;
 public class MatchSubscriptionRepositoryImpl implements MatchSubscriptionRepository {
     private final MatchSubscriptionMapper mapper;
     private final SpringJpaMatchSubscriptionRepository springJpaMatchSubscriptionRepository;
+
+    @Override
+    public List<MatchSubscription> getMatchSubscriptions(final Long memberNo, List<Long> plabMatchNos) {
+        List<MatchSubscriptionEntity> entities = springJpaMatchSubscriptionRepository.findByMemberNoAndPlabMatchNoIn(memberNo,plabMatchNos);
+        return entities.stream()
+                .map(mapper::toDomain)
+                .toList()
+                ;
+    }
 
     @Override
     public Optional<MatchSubscription> getMatchSubscriptionBySubscriptionNo(final Long subscriptionNo) {

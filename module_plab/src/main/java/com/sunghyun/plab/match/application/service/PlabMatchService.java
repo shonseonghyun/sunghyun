@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.List;
+
 
 @Slf4j
 @Service
@@ -79,5 +81,13 @@ public class PlabMatchService implements PlabMatchUseCase {
         return plabMatchRepository.getPlabMatchByPlabMatchNo(plabMatchNo)
                 .map(PlabMatchResDto::from)
                 .orElse(null); // 혹은 필요시 예외 처리
+    }
+
+    @Override
+    public List<PlabMatchResDto> getPlabMatches(final String startDt,final String endDt) {
+        return plabMatchRepository.getPlabMatches(startDt,endDt)
+                .stream().map(PlabMatchResDto::from)
+                .toList()
+        ;
     }
 }

@@ -15,11 +15,11 @@ public class PlabSecurityConfig {
 
         securityMatcherChain.addAll(
                 SecurityRequestMatcher.patterns(
-                        "/plab/subscription/**"
-                ).hasRole(Role.USER),
-                SecurityRequestMatcher.patterns(
                         "/plab/match/**"
-                ).hasRole(Role.ADMIN)
+                ).hasRole(Role.ADMIN),
+                SecurityRequestMatcher.patterns(
+                        "/plab/**"
+                ).hasRole(Role.USER)
         );
 
         return securityMatcherChain;
