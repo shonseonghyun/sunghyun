@@ -29,4 +29,9 @@ public class PlabMatchAdapterForSubscription implements PlabMatchOutPort {
     public List<PlabMatchResDto> getPlabMatches(String startDt, String endDt) {
         return plabMatchUseCase.getPlabMatches(startDt,endDt);
     }
+
+    @Override
+    public List<PlabMatchResDto> getPlabMatchesByDate(String targetDt) {
+        return plabMatchUseCase.getPlabMatchesByDate(targetDt);
+    }
 }

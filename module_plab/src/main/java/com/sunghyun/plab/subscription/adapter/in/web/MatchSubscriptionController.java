@@ -27,6 +27,15 @@ public class MatchSubscriptionController {
 
     private final MatchSubscriptionUseCase matchSubscriptionUseCase;
 
+    @GetMapping("/subscription")
+    public GlobalResponse getMatchSubscription(@RequestParam(required = false) String date,@AuthMember AuthMemberInfo authMember) {
+        final Long memberNo = authMember.getMemberNo();
+        final String targetDate = (date == null) ? ApiUtils.getCurrentDt() : date;
+        List<MatchSubscriptionsSelResDto> result = matchSubscriptionUseCase.getMatchSubscriptionsByDate(memberNo,targetDate);
+        return GlobalResponse.of(ErrorCode.S000,result);
+    }
+
+
     @GetMapping("/subscriptions")
     public GlobalResponse getMatchSubscriptions(@RequestParam(required = false) String month,@AuthMember AuthMemberInfo authMember) {
         final Long memberNo = authMember.getMemberNo();

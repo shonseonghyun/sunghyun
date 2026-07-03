@@ -15,12 +15,10 @@ import com.sunghyun.plab.subscription.domain.service.MatchSubscriptionDomainServ
 import com.sunghyun.plab.subscription.domain.service.SubscriptionNotificationValidator;
 import com.sunghyun.utils.ApiUtils;
 import com.sunghyun.web.ErrorCode;
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,11 +33,37 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
     private final MatchSubscriptionDomainService matchSubscriptionDomainService;
     private final MatchSubscriptionRepository matchSubscriptionRepository;
     private final PlabMatchOutPort plabMatchOutPort;
-    private final HikariDataSource hikariDataSource;
-
-//    private final ApplicationEventPublisher eventPublisher;
-//    private final KafkaTemplate<String,Object> kafkaTemplate; //카프카가 아니라 새로운 걸로 변환해야한다면?
     private final NotificationEventOutPort notificationEventOutPort;
+
+    @Override
+    public List<MatchSubscriptionsSelResDto> getMatchSubscriptionsByDate(final Long memberNo,final String targetDate) {
+        List<PlabMatchResDto> plabMatchResDtos = plabMatchOutPort.getPlabMatchesByDate(targetDate);
+
+        Map<Long,PlabMatchResDto> matchMap = plabMatchResDtos.stream()
+                .collect(Collectors.toMap(PlabMatchResDto::getPlabMatchNo,plabMatchResDto->plabMatchResDto))
+                ;
+
+        List<Long> targetMatchNos = new ArrayList<>(matchMap.keySet());
+        List<MatchSubscription> matchSubscriptions = matchSubscriptionRepository.getMatchSubscriptions(memberNo,targetMatchNos);
+
+        return matchSubscriptions.stream()
+                .filter(sub->matchMap.containsKey(sub.getPlabMatchNo()))
+                .map(sub->{
+                    PlabMatchResDto plabMatchResDto = matchMap.get(sub.getPlabMatchNo());
+                    return MatchSubscriptionsSelResDto.builder()
+                            .matchSubscription(
+                                    MatchSubscriptionSelResDto.builder()
+                                            .plabMatchNo(sub.getPlabMatchNo())
+                                            .subscriptionNo(sub.getSubscriptionNo())
+                                            .memberNo(sub.getMemberNo())
+                                            .email(sub.getEmail())
+                                            .notiType(sub.getNotiType())
+                                            .notiValue(sub.getNotiValue())
+                                            .build())
+                            .plabMatch(plabMatchResDto)
+                            .build();
+                }).toList();
+    }
 
     @Override
     public List<MatchSubscriptionsSelResDto> getMatchSubscriptions(final Long memberNo,final String startDt,final String endDt) {
@@ -74,14 +98,6 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
 
     @Transactional
     public MatchSubscriptionRegResDto registerMatchSubscription(final MatchSubscriptionRegReqDto dto){
-
-        int activeConnections = hikariDataSource.getHikariPoolMXBean().getActiveConnections();
-        int idleConnections = hikariDataSource.getHikariPoolMXBean().getIdleConnections();
-        System.out.println("registerMatchSubscription...");
-        System.out.println("activeConnections = " + activeConnections);
-        System.out.println("idleConnections = " + idleConnections);
-        System.out.println("registerMatchSubscription...");
-
         // 플랩 매치데이터 조회
         final PlabMatchResDto result = plabMatchOutPort.registerPlabMatch(dto.getPlabMatchNo());
 
@@ -133,11 +149,7 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
         return MatchSubscriptionModResDto.from(selectedMatchSubscription);
     }
 
-
     private void publishNotificationIfSatisfied(final MatchSubscription matchSubscription,final PlabMatchResDto dto){
-        String currentTransactionName = TransactionSynchronizationManager.getCurrentTransactionName();
-        log.info("현재 활성화된 트랜잭션 이름: [{}]", currentTransactionName);
-
         final boolean isSatisfied = subscriptionNotificationValidator.isSatisfied(
                 matchSubscription.getNotiType(),
                 matchSubscription.getNotiValue(),

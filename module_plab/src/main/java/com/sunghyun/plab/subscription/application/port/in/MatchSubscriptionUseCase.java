@@ -12,4 +12,5 @@ public interface MatchSubscriptionUseCase {
     MatchSubscriptionRegResDto registerMatchSubscription(final MatchSubscriptionRegReqDto dto);
     MatchSubscriptionModResDto modifyMatchSubscription(final Long subscriptionNo,final MatchSubscriptionModReqDto dto);
     List<MatchSubscriptionsSelResDto> getMatchSubscriptions(final Long memberNo, final String startDate, final String endDt);
+    List<MatchSubscriptionsSelResDto> getMatchSubscriptionsByDate(final Long memberNo,final String targetDate);
 }

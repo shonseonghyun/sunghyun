@@ -194,4 +194,18 @@ public class ApiUtils {
 
         return targetMonth.atEndOfMonth().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
+
+    /**
+     * 인입된 날짜 문자열이 null이거나 공백이면 오늘 날짜를 yyyyMMdd 형식으로 반환합니다.
+     * 값이 존재하면 인입된 값을 그대로 반환합니다.
+     *
+     * @param date 날짜 문자열 (예: "20260702", null, "")
+     * @return yyyyMMdd 형식의 날짜 문자열 (예: "20260702")
+     */
+    public static String getOrCurrentDate(String date) {
+        if (date == null || date.isBlank()) {
+            return getCurrentDt(); // 💡 기존에 만들어두신 현재 날짜 반환 메서드 활용
+        }
+        return date;
+    }
 }

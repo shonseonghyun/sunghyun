@@ -8,4 +8,5 @@ public interface PlabMatchUseCase {
     PlabMatchResDto registerPlabMatch(final Long plabMatchNo);
     PlabMatchResDto getPlabMatchByPlabMatchNo(final Long plabMatchNo);
     List<PlabMatchResDto> getPlabMatches(String startDt, String endDt);
+    List<PlabMatchResDto> getPlabMatchesByDate(final String targetDt);
 }

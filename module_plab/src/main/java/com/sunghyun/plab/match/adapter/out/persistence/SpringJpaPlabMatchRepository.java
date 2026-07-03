@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface SpringJpaPlabMatchRepository extends JpaRepository<PlabMatch,Long> {
     Optional<PlabMatch> findPlabMatchByPlabMatchNo(final Long plabMatchNo);
     List<PlabMatch> findByMatchDtBetween(final String startDt, final String endDt);
+    List<PlabMatch> findByMatchDt(final String targetDt);
 }

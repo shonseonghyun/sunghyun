@@ -90,4 +90,11 @@ public class PlabMatchService implements PlabMatchUseCase {
                 .toList()
         ;
     }
+
+    @Override
+    public List<PlabMatchResDto> getPlabMatchesByDate(String targetDt) {
+        return plabMatchRepository.getPlabMatchesByDate(targetDt)
+                .stream().map(PlabMatchResDto::from)
+                .toList();
+    }
 }

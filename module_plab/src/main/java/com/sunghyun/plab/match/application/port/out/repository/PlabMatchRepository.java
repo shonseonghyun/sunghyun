@@ -9,4 +9,5 @@ public interface PlabMatchRepository {
     PlabMatch save(final PlabMatch plabMatch);
     Optional<PlabMatch> getPlabMatchByPlabMatchNo(final Long plabMatchNo);
     List<PlabMatch> getPlabMatches(String startDt, String endDt);
+    List<PlabMatch> getPlabMatchesByDate(String targetDt);
 }

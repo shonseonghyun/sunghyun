@@ -34,4 +34,9 @@ public class PlabMatchOpenFeignClientAdapter implements PlabMatchOutPort {
     public List<PlabMatchResDto> getPlabMatches(String startDt, String endDt) {
         return List.of();
     }
+
+    @Override
+    public List<PlabMatchResDto> getPlabMatchesByDate(String targetDate) {
+        return List.of();
+    }
 }

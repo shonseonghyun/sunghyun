@@ -27,4 +27,9 @@ public class PlabMatchRepositoryImpl implements PlabMatchRepository {
     public List<PlabMatch> getPlabMatches(String startDt, String endDt) {
         return springJpaPlabMatchRepository.findByMatchDtBetween(startDt,endDt);
     }
+
+    @Override
+    public List<PlabMatch> getPlabMatchesByDate(String targetDt) {
+        return springJpaPlabMatchRepository.findByMatchDt(targetDt);
+    }
 }
