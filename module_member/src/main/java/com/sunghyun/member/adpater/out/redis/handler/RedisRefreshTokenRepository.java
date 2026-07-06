@@ -30,7 +30,7 @@ public class RedisRefreshTokenRepository extends AbstractRedisRepository impleme
     @Override
     public Optional<Object> getRefreshToken(String id) {
         final String key = getKey(id);
-        return Optional.ofNullable(getValue(key));
+        return getValue(key);
     }
 
     private String getKey(String id){
