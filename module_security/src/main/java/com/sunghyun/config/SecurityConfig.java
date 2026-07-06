@@ -12,6 +12,11 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /*
     스프링 시큐리티
@@ -43,6 +48,7 @@ public class SecurityConfig {
 //                                        .maxSessionsPreventsLogin(false)
 //                                        .expiredUrl("/test")
 //                )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(securityRequestMatcherHelper::setAuthorizedRequest)
                 .formLogin(AbstractHttpConfigurer::disable) // 시큐리티에서 제공하는 HTTP 기반의 폼 로그인 기반 인증방식 -> 비활성화
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -56,5 +62,18 @@ public class SecurityConfig {
                                 .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 .build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));      // 허용할 오리진
+        configuration.setAllowedMethods(List.of("*"));                          // 허용할 HTTP 메서드
+        configuration.setAllowedHeaders(List.of("*"));                          // 모든 헤더 허용
+        configuration.setAllowCredentials(true);                                    // 인증 정보 허용
+        configuration.setMaxAge(3600L);                                             // 프리플라이트 요청 결과를 3600초 동안 캐시
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);             // 모든 경로에 대해 이 설정 적용
+        return source;
     }
 }
