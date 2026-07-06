@@ -203,7 +203,7 @@ public class JwtProvider {
             throw new InvalidTokenException(ErrorCode.T00);
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
             log.error("만료된 JWT 토큰입니다. (Expired)");
-            throw new InvalidTokenException(ErrorCode.T00);
+            throw new InvalidTokenException(ErrorCode.T01);
         } catch (io.jsonwebtoken.UnsupportedJwtException e) {
             log.error("지원되지 않는 형식의 JWT 토큰입니다.");
             throw new InvalidTokenException(ErrorCode.T00);
