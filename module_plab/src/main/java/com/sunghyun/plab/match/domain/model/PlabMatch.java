@@ -47,6 +47,9 @@ public class PlabMatch {
     private NotiSetting playerCnt;
 
     @Column
+    private Integer maxPlayerCnt;
+
+    @Column
     @Convert(converter = NotiSettingConverter.class)
     private NotiSetting subType;
 
@@ -86,6 +89,7 @@ public class PlabMatch {
                 .matchDt(ApiUtils.parseDate(result.getSchedule()))
                 .matchTm(ApiUtils.parseTime(result.getSchedule()))
                 .playerCnt(NotiSetting.fromCode(String.valueOf(result.getTotalApplyCnt())))
+                .maxPlayerCnt(result.getMaxPlayerCnt())
                 .subType(NotiSetting.getSubType(result.isSuperSub(),result.isManagerFree()))
                 .status(MatchStatus.ACTIVE)
                 .build()

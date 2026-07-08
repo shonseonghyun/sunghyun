@@ -18,6 +18,7 @@ public class MatchSubscriptionMapper {
                 .email(domain.getEmail())
                 .notiType(domain.getNotiType())
                 .notiValue(domain.getNotiValue())
+                .isActive(domain.isActive())
                 .build();
     }
 
@@ -33,6 +34,7 @@ public class MatchSubscriptionMapper {
                 .email(entity.getEmail())
                 .notiType(entity.getNotiType())
                 .notiValue(entity.getNotiValue()) // Integer -> NotiValue 복원
+                .isActive(entity.isActive())
                 .build();
     }
 }

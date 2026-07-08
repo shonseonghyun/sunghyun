@@ -22,6 +22,7 @@ public class NotificationTargetDto implements PlabMatchData {
     private String stadiumName;
     private String matchDt;
     private String matchTm;
+    private Integer maxPlayerCnt;
 
     // 2. 알림 조건
     private NotiType notiType;    // 구독한 알림 타입 (예: PLAYER_COUNT)

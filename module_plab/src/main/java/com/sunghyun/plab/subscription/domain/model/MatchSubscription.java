@@ -24,12 +24,15 @@ public class MatchSubscription {
     @UpdateAble
     private NotiSetting notiValue;
 
+    private boolean isActive;
+
     public static MatchSubscription create(
             final Long plabMatchNo,
             final Long memberNo,
             final String email,
             final NotiType notiType,
-            final NotiSetting notiValue
+            final NotiSetting notiValue,
+            final boolean isActive
     )
     {
         return MatchSubscription.builder()
@@ -38,7 +41,12 @@ public class MatchSubscription {
                 .email(email)
                 .notiType(notiType)
                 .notiValue(notiValue)
+                .isActive(isActive)
                 .build()
                 ;
+    }
+
+    public void toggleStatus() {
+        isActive = !isActive;
     }
 }

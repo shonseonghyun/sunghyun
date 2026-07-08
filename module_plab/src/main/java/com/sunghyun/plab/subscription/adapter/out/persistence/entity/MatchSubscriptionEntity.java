@@ -37,4 +37,7 @@ public class MatchSubscriptionEntity {
     @Column
     @Convert(converter = NotiSettingConverter.class)
     private NotiSetting notiValue;
+
+    @Column
+    private boolean isActive;
 }

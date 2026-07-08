@@ -22,24 +22,16 @@ public class MatchSubscriptionDomainService {
             final NotiSetting notiValue
     )
     {
-        //구독 매치 등록 검증
-//        matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNo(memberNo,plabMatchNo)
-//                .ifPresent(m -> {
-//                    throw new ExistMatchSubscriptionException(ErrorCode.P01);
-//                })
-//        ;
-
         //구독 정보 생성 및 저장
         MatchSubscription matchSubscription = MatchSubscription.create(
                 plabMatchNo,
                 memberNo,
                 email,
                 notiType,
-                notiValue
+                notiValue,
+                true
         );
 
         return matchSubscription;
-
-//        return matchSubscriptionRepository.save(matchSubscriptionEntity);
     }
 }

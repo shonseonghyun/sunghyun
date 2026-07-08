@@ -24,6 +24,7 @@ public class PlabMatchResDto implements PlabMatchData {
     private String matchDt;
     private String matchTm;
     private NotiSetting playerCnt;
+    private Integer maxPlayerCnt;
     private NotiSetting subType;
     private MatchStatus status;
 
@@ -37,6 +38,7 @@ public class PlabMatchResDto implements PlabMatchData {
                 .matchDt(plabMatch.getMatchDt())
                 .matchTm(plabMatch.getMatchTm())
                 .playerCnt(plabMatch.getPlayerCnt())
+                .maxPlayerCnt(plabMatch.getMaxPlayerCnt())
                 .subType(plabMatch.getSubType())
                 .status(plabMatch.getStatus())
                 .build();

@@ -21,6 +21,7 @@ public class MatchSubscriptionRegResDto {
     private String email;
     private NotiType notiType;
     private NotiSetting notiValue;
+    private boolean isActive;
     private PlabMatchResDto plabMatchResDto;
 
     public static MatchSubscriptionRegResDto from(final MatchSubscription matchSubscription) {
@@ -41,6 +42,7 @@ public class MatchSubscriptionRegResDto {
                 .email(matchSubscription.getEmail())
                 .notiType(matchSubscription.getNotiType())
                 .notiValue(matchSubscription.getNotiValue())
+                .isActive(matchSubscription.isActive())
                 .plabMatchResDto(plabMatchResDto)
                 .build();
     }

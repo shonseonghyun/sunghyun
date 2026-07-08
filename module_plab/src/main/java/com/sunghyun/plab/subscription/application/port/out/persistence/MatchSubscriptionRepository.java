@@ -11,6 +11,6 @@ public interface MatchSubscriptionRepository {
     Optional<MatchSubscription> findMatchSubscriptionByMemberNoAndPlabMatchNoAndNotiType(final Long memberNo, final Long plabMatchNo, final NotiType notiType);
     MatchSubscription save(final MatchSubscription matchSubscription);
     void deleteAll();
-    Long count();
-    List<MatchSubscription> getMatchSubscriptions(final Long memberNo,List<Long> matchNos);
+    List<MatchSubscription> getMatchSubscriptions(final Long memberNo, List<Long> matchNos);
+    Optional<MatchSubscription> getMatchSubscriptionBySubscriptionNoAndMemberNo(final Long subscriptionNo,final Long memberNo);
 }

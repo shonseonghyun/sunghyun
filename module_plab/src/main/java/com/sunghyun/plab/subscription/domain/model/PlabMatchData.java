@@ -8,5 +8,6 @@ public interface PlabMatchData {
     String getMatchDt();
     String getMatchTm();
     NotiSetting getPlayerCnt(); // 혹은 Integer
+    Integer getMaxPlayerCnt(); // 혹은 Integer
     NotiSetting getSubType();
 }

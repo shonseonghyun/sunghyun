@@ -1,7 +1,6 @@
 package com.sunghyun.plab.subscription.adapter.out.persistence.repository;
 
 import com.sunghyun.plab.subscription.adapter.out.persistence.MatchSubscriptionMapper;
-import com.sunghyun.plab.subscription.adapter.out.persistence.entity.MatchSubscriptionEntity;
 import com.sunghyun.plab.subscription.application.port.out.persistence.MatchSubscriptionRepository;
 import com.sunghyun.plab.subscription.domain.enums.NotiType;
 import com.sunghyun.plab.subscription.domain.model.MatchSubscription;
@@ -18,11 +17,18 @@ public class MatchSubscriptionRepositoryImpl implements MatchSubscriptionReposit
     private final SpringJpaMatchSubscriptionRepository springJpaMatchSubscriptionRepository;
 
     @Override
-    public List<MatchSubscription> getMatchSubscriptions(final Long memberNo, List<Long> plabMatchNos) {
-        List<MatchSubscriptionEntity> entities = springJpaMatchSubscriptionRepository.findByMemberNoAndPlabMatchNoIn(memberNo,plabMatchNos);
-        return entities.stream()
+    public List<MatchSubscription> getMatchSubscriptions(Long memberNo, List<Long> plabMatchNos) {
+        return springJpaMatchSubscriptionRepository.findByMemberNoAndPlabMatchNoIn(memberNo,plabMatchNos)
+                .stream()
                 .map(mapper::toDomain)
                 .toList()
+                ;
+    }
+
+    @Override
+    public Optional<MatchSubscription> getMatchSubscriptionBySubscriptionNoAndMemberNo(Long subscriptionNo, Long memberNo) {
+        return springJpaMatchSubscriptionRepository.findBySubscriptionNoAndMemberNo(subscriptionNo,memberNo)
+                .map(mapper::toDomain)
                 ;
     }
 
@@ -49,10 +55,5 @@ public class MatchSubscriptionRepositoryImpl implements MatchSubscriptionReposit
     @Override
     public void deleteAll() {
         springJpaMatchSubscriptionRepository.deleteAll();
-    }
-
-    @Override
-    public Long count() {
-        return springJpaMatchSubscriptionRepository.count();
     }
 }
