@@ -14,10 +14,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MatchSubscriptionRegReqDto {
-    @NotNullWithMsg
-    private Long memberNo;          // 사용자 번호
-
-    private String email;           // 알림 받을 이메일
+//    @NotNullWithMsg
+//    private Long memberNo;          // 사용자 번호
+//
+//    private String email;           // 알림 받을 이메일
 
     @NotNullWithMsg
     private Long plabMatchNo;       // 플랩 매치 번호
@@ -34,9 +34,6 @@ public class MatchSubscriptionRegReqDto {
         return value.getNotiType().equals(notiType);
     }
 
-    /**
-     * 정적 팩토리 메서드 (선택 사항: DTO 생성을 좀 더 명확하게 하고 싶을 때)
-     */
 //    public static MatchSubscriptionRegReqDto of(Long memberNo, String email, Long plabMatchNo, Integer targetPlayerCnt, ActiveSubType subType) {
 //        return MatchSubscriptionRegReqDto.builder()
 //                .memberNo(memberNo)

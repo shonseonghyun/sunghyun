@@ -43,8 +43,10 @@ public class MatchSubscriptionController {
     }
 
     @PostMapping("/subscription")
-    public GlobalResponse<MatchSubscriptionRegResDto> registerMatchSubscription(@Valid @RequestBody final MatchSubscriptionRegReqDto dto) {
-        MatchSubscriptionRegResDto result = matchSubscriptionUseCase.registerMatchSubscription(dto);
+    public GlobalResponse<MatchSubscriptionRegResDto> registerMatchSubscription(@Valid @RequestBody final MatchSubscriptionRegReqDto dto,@AuthMember AuthMemberInfo authMemberInfo) {
+        final Long memberNo = authMemberInfo.getMemberNo();
+
+        MatchSubscriptionRegResDto result = matchSubscriptionUseCase.registerMatchSubscription(memberNo,dto);
         return GlobalResponse.of(ErrorCode.S000,result);
     }
 

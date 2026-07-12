@@ -1,9 +1,11 @@
 package com.sunghyun.plab.subscription.application;
 
+import com.sunghyun.feign.dto.MemberResponseDto;
 import com.sunghyun.plab.subscription.application.port.in.MatchSubscriptionUseCase;
 import com.sunghyun.plab.subscription.application.port.in.dto.MatchSubscriptionModReqDto;
 import com.sunghyun.plab.subscription.application.port.in.dto.MatchSubscriptionRegReqDto;
 import com.sunghyun.plab.subscription.application.port.out.dto.*;
+import com.sunghyun.plab.subscription.application.port.out.external.MemberOutPort;
 import com.sunghyun.plab.subscription.application.port.out.external.NotificationEventOutPort;
 import com.sunghyun.plab.subscription.application.port.out.external.PlabMatchOutPort;
 import com.sunghyun.plab.subscription.application.port.out.persistence.MatchSubscriptionRepository;
@@ -34,6 +36,7 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
     private final MatchSubscriptionRepository matchSubscriptionRepository;
     private final PlabMatchOutPort plabMatchOutPort;
     private final NotificationEventOutPort notificationEventOutPort;
+    private final MemberOutPort memberOutPort;
 
     @Override
     public List<MatchSubscriptionSelResDto> getMatchSubscriptionsByDate(final Long memberNo, final String targetDate) {
@@ -121,22 +124,26 @@ public class MatchSubscriptionService implements MatchSubscriptionUseCase {
     }
 
     @Transactional
-    public MatchSubscriptionRegResDto registerMatchSubscription(final MatchSubscriptionRegReqDto dto){
+    public MatchSubscriptionRegResDto registerMatchSubscription(final Long memberNo, final MatchSubscriptionRegReqDto dto){
+
+
         // 플랩 매치데이터 조회
         final PlabMatchResDto result = plabMatchOutPort.registerPlabMatch(dto.getPlabMatchNo());
 
         // 매치 구독 존재하는지 검증
-        matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNoAndNotiType(dto.getMemberNo(), dto.getPlabMatchNo(), dto.getNotiType())
+        matchSubscriptionRepository.findMatchSubscriptionByMemberNoAndPlabMatchNoAndNotiType(memberNo, dto.getPlabMatchNo(), dto.getNotiType())
                 .ifPresent(m -> {
                     throw new ExistMatchSubscriptionException(ErrorCode.P01);
                 })
         ;
 
+        final MemberResponseDto memberResponseDto = memberOutPort.getMemberResponseDto(memberNo);
+
         // 매치구독 도메인 생성
         MatchSubscription matchSubscription = matchSubscriptionDomainService.createMatchSubscription(
                 dto.getPlabMatchNo(),
-                dto.getMemberNo(),
-                dto.getEmail(),
+                memberNo,
+                memberResponseDto.getEmail(),
                 dto.getNotiType(),
                 dto.getValue()
         );

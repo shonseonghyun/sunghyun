@@ -4,9 +4,7 @@ import com.sunghyun.web.exception.ExternalResourceNotFoundException;
 import com.sunghyun.web.ErrorCode;
 import feign.Response;
 import feign.codec.ErrorDecoder;
-import org.springframework.stereotype.Component;
 
-@Component
 public class FeignClientGlobalErrorDecoder implements ErrorDecoder {
 
     /**
