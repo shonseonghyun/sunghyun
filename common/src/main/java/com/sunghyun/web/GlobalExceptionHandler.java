@@ -25,6 +25,14 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public GlobalResponse handleException(Exception exception){
+        //NullPointerException 같은 개발자가 확안하지 못한 예외 잡자.
+        log.error("의도치 않은 예외가 발생하였습니다.");
+        return GlobalResponse.of(ErrorCode.F000);
+    }
+
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<GlobalResponse> handleBaseException(BaseException baseException){
         ErrorCode errorCode = baseException.getErrorCode();

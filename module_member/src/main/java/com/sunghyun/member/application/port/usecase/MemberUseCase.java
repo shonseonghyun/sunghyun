@@ -7,7 +7,7 @@ import com.sunghyun.member.application.dto.res.MemberResDto;
 public interface MemberUseCase {
     MemberResDto getMemberByMemberNo(final Long memberNo);
     MemberResDto registerMember(final MemberRegisterReqDto dto);
-    MemberResDto modifyMember(final MemberModifyReqDto dto);
+    MemberResDto modifyMember(final Long memberNo, final MemberModifyReqDto dto);
     void deleteMember(final Long memberNo);
 
 }

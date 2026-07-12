@@ -63,14 +63,13 @@ public class MemberService implements MemberUseCase {
 
     @Override
     @Transactional
-    public MemberResDto modifyMember(final MemberModifyReqDto dto){
+    public MemberResDto modifyMember(final Long memberNo, final MemberModifyReqDto dto){
         //1. 유저 조회
-        Member selectedMember = memberRepository.getMemberByMemberNo(dto.getMemberNo())
+        Member selectedMember = memberRepository.getMemberByMemberNo(memberNo)
                 .orElseThrow(()->new MemberNotFoundException(ErrorCode.M000));
 
         //업데이트 위해 dto를 도메인으로 매핑
-//        Member modifyReqMember = dto.toDomain();
-        Member modifyReqMember = null;
+        Member modifyReqMember = dto.toDomain();
 
         //업데이트 여부 플래그
         boolean isUpdated ;
@@ -86,7 +85,7 @@ public class MemberService implements MemberUseCase {
 
         // 5. 변경사항이 있을 때만 save (JPA라면 Dirty Checking으로 생략 가능)
         if(isUpdated){
-            memberRepository.save(selectedMember );
+            memberRepository.save(selectedMember);
         }
 
         //6. 변환 및 return
