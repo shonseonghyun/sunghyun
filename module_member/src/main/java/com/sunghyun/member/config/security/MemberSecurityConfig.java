@@ -21,6 +21,8 @@ public class MemberSecurityConfig {
                         "/member"
                 ).permitAll(),
                 SecurityRequestMatcher.patterns(
+                        "/friend/**",
+                        "/friends/**",
                         "/member/**"
                 ).hasRole(Role.USER)
         );
