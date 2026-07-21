@@ -26,6 +26,9 @@ public class ChatParticipantEntity {
     @Column
     private boolean isLeft;
 
+    @Column
+    private Long lastReadChatMessageNo;
+
     // Domain -> Entity 변환
     public static ChatParticipantEntity fromDomain(ChatParticipant domain) {
         if (domain == null) return null;
@@ -34,15 +37,17 @@ public class ChatParticipantEntity {
                 .chatParticipantNo(domain.getChatParticipantNo())
                 .memberNo(domain.getMemberNo())
                 .isLeft(domain.isLeft())
+                .lastReadChatMessageNo(domain.getLastReadChatMessageNo())
                 .build();
     }
 
     // Entity -> Domain 변환
     public ChatParticipant toDomain() {
         return ChatParticipant.builder()
-                .ChatParticipantNo(this.chatParticipantNo)
+                .chatParticipantNo(this.chatParticipantNo)
                 .memberNo(this.memberNo)
                 .isLeft(this.isLeft)
+                .lastReadChatMessageNo(this.lastReadChatMessageNo)
                 .build();
     }
 }

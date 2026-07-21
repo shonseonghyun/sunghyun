@@ -19,5 +19,5 @@ public class ChatRoomResDto {
     private String lastSendDt;
     private String lastSendTm;
 
-//    private Integer pendingCount;
+    private Long unreadCount; // 안 읽은 메시지 수 추가
 }

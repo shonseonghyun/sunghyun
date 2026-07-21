@@ -1,9 +1,12 @@
 package com.sunghyun.chat.adapter.out.persistence.repository;
 
 import com.sunghyun.chat.adapter.out.persistence.entity.ChatMessageEntity;
+import com.sunghyun.chat.adapter.out.persistence.entity.ChatParticipantEntity;
 import com.sunghyun.chat.adapter.out.persistence.entity.ChatRoomEntity;
+import com.sunghyun.chat.application.dto.UnreadCountMapping;
 import com.sunghyun.chat.application.port.out.ChatRepository;
 import com.sunghyun.chat.domain.ChatMessage;
+import com.sunghyun.chat.domain.ChatParticipant;
 import com.sunghyun.chat.domain.ChatRoom;
 import com.sunghyun.chat.domain.enums.ChatRoomType;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ import java.util.Optional;
 public class ChatRepositoryImpl implements ChatRepository {
     private final SpringJpaChatRoomRepository springJpaChatRoomRepository;
     private final SpringJpaChatMessageRepository springJpaChatMessageRepository;
+    private final SpringJpaChatParticipantRepository springJpaChatParticipantRepository;
 
     @Override
     public ChatRoom save(ChatRoom chatRoom) {
@@ -29,6 +33,19 @@ public class ChatRepositoryImpl implements ChatRepository {
     public ChatMessage save(ChatMessage chatMessage) {
         return springJpaChatMessageRepository.save(ChatMessageEntity.fromDomain(chatMessage))
                 .toDomain();
+    }
+
+    @Override
+    public ChatParticipant save(ChatParticipant chatParticipant) {
+        return springJpaChatParticipantRepository.save(ChatParticipantEntity.fromDomain(chatParticipant))
+                .toDomain();
+    }
+
+    @Override
+    public Optional<ChatRoom> findChatRoomByChatRoomNo(Long chatRoomNo) {
+        return springJpaChatRoomRepository.findById(chatRoomNo)
+                .map(ChatRoomEntity::toDomain)
+                ;
     }
 
     @Override
@@ -60,5 +77,10 @@ public class ChatRepositoryImpl implements ChatRepository {
                 .stream().map(ChatMessageEntity::toDomain)
                 .toList()
                 ;
+    }
+
+    @Override
+    public List<UnreadCountMapping> findUnreadCountsByMemberNoAndRoomNos(Long memberNo, List<Long> roomNoList) {
+        return springJpaChatParticipantRepository.findUnreadCountsByMemberNoAndRoomNos(memberNo,roomNoList);
     }
 }

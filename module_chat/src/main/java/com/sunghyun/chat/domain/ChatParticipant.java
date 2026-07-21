@@ -8,9 +8,11 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class ChatParticipant {
-    private Long ChatParticipantNo;
+    private Long chatParticipantNo;
 
     private Long memberNo;
+
+    private Long lastReadChatMessageNo;
 
     private boolean isLeft;
 
@@ -18,7 +20,14 @@ public class ChatParticipant {
         return ChatParticipant.builder()
                 .memberNo(memberNo)
                 .isLeft(false)
-                .build()
-                ;
+                .build();
+    }
+
+    public void readMessage(Long lastReadChatMessageNo) {
+        if (lastReadChatMessageNo == null) return;
+
+        if (this.lastReadChatMessageNo == null || lastReadChatMessageNo > this.lastReadChatMessageNo) {
+            this.lastReadChatMessageNo = lastReadChatMessageNo;
+        }
     }
 }
