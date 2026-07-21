@@ -7,7 +7,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 @Configuration
-@EnableWebSocketMessageBroker //웹 소켓 메시지 브로커 활성화
+@EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
@@ -17,7 +17,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 // cors 설정 - 허용할 origin 패턴 설정
                 .setAllowedOriginPatterns("*")
                 // SockJs 지원 추가
-                .withSockJS();
+//                .withSockJS()
+        ;
     }
 
     @Override
@@ -25,7 +26,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // 구독 경로 설정 - 클라이언트가 구독할 수 있는 endpoint 설정
         // 클라이언트느 이 prefix로 시작하는 주제를 구독할 수 있음
         registry.enableSimpleBroker(
-                "/sub/chat"
+                "/sub"
         );
 
         // 발행 경로 설정 - 클라이언트가 메시지를 발행할 때 사용할 prefix
