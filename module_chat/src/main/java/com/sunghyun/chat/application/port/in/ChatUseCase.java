@@ -8,6 +8,6 @@ public interface ChatUseCase {
     ChatRoomCreateResDto getOrCreateChatRoom(Long memberNo, Long friendMemberNo);
     List<ChatRoomResDto> getMyChatRooms(Long memberNo);
     ChatMessageSendResDto createChatMessage(Long chatRoomNo, ChatMessageSendReqDto payload);
-    List<ChatMessageResDto> getChatMessages(Long chatRooNo, Long lastMessageNo, int pageSize);
+    ChatMessageListResDto getChatMessages(Long chatRoomNo, Long lastMessageNo, int pageSize);
     ChatReadResDto readChatMessage(Long chatRoomNo, Long memberNo, Long lastReadChatMessageNo);
 }

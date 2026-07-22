@@ -9,6 +9,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ChatReadResDto {
     private Long chatRoomNo;
-    private Long readerMemberNo;
+    private Long memberNo;
     private Long lastReadChatMessageNo;
 }

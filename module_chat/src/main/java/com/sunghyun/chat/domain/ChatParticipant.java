@@ -20,6 +20,7 @@ public class ChatParticipant {
         return ChatParticipant.builder()
                 .memberNo(memberNo)
                 .isLeft(false)
+                .lastReadChatMessageNo(0L)
                 .build();
     }
 

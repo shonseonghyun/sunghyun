@@ -40,14 +40,25 @@ public class ChatService implements ChatUseCase {
     }
 
     @Override
-    public List<ChatMessageResDto> getChatMessages(Long chatRoomNo, Long lastMessageNo, int pageSize) {
+    public ChatMessageListResDto getChatMessages(Long chatRoomNo, Long lastMessageNo, int pageSize) {
+        // 방 정보 조회 (참여자 목록 추출용)
+        ChatRoom chatRoom = chatRepository.findChatRoomByChatRoomNo(chatRoomNo)
+                .orElseThrow(() -> new BaseException(ErrorCode.F000)); // 존재하지 않는 방 예외 처리
+
+        // Domain의 참여자 정보를 DTO로 변환
+        List<ChatParticipantResDto> participants = chatRoom.getChatParticipants().stream()
+                .map(ChatParticipantResDto::fromDomain)
+                .toList();
+
         // 페이징의 offset은 항상 0으로 고정하고, 한 번에 가져올 사이즈(LIMIT)만 지정합니다.
         Pageable pageable = PageRequest.of(0, pageSize);
 
         List<ChatMessage> messages = chatRepository.findMessagesByRoomNo(chatRoomNo, lastMessageNo, pageable);
-        return messages.stream()
+        List<ChatMessageResDto> messageDtos = messages.stream()
                 .map(ChatMessageResDto::fromDomain)
                 .toList();
+
+        return new ChatMessageListResDto(messageDtos, participants);
     }
 
     @Override
@@ -67,7 +78,7 @@ public class ChatService implements ChatUseCase {
 
         return ChatReadResDto.builder()
                 .chatRoomNo(chatRoomNo)
-                .readerMemberNo(memberNo)
+                .memberNo(memberNo)
                 .lastReadChatMessageNo(chatParticipant.getLastReadChatMessageNo())
                 .build();
     }
