@@ -1,6 +1,5 @@
 package com.sunghyun.chat.application.port.out;
 
-import com.sunghyun.chat.application.dto.UnreadCountMapping;
 import com.sunghyun.chat.domain.ChatMessage;
 import com.sunghyun.chat.domain.ChatParticipant;
 import com.sunghyun.chat.domain.ChatRoom;
@@ -19,5 +18,5 @@ public interface ChatRepository {
     List<ChatRoom> findChatRoomsByMemberNoAndChatRoomType(Long memberNo, ChatRoomType chatRoomType);
     List<ChatMessage> findLatestMessagesByRoomNos(List<Long> roomNoList);
     List<ChatMessage> findMessagesByRoomNo(Long chatRoomNo, Long lastMessageNo, Pageable pageable);
-    List<UnreadCountMapping> findUnreadCountsByMemberNoAndRoomNos(Long memberNo, List<Long> roomNoList);
+    List<com.sunghyun.chat.application.dto.res.UnreadCountMapping> findUnreadCountsByMemberNoAndRoomNos(Long memberNo, List<Long> roomNoList);
 }

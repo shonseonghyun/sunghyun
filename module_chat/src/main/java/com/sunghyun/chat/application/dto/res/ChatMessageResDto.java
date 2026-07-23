@@ -1,4 +1,4 @@
-package com.sunghyun.chat.application.dto;
+package com.sunghyun.chat.application.dto.res;
 
 import com.sunghyun.chat.domain.ChatMessage;
 import com.sunghyun.chat.domain.enums.ChatMessageType;

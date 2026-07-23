@@ -13,11 +13,9 @@ import java.util.Optional;
 public interface SpringJpaChatRoomRepository extends JpaRepository<ChatRoomEntity, Long> {
     @Query("SELECT DISTINCT cr FROM ChatRoomEntity cr " +
             "JOIN FETCH cr.chatParticipants " +
-            "JOIN cr.chatParticipants cp1 " +
-            "JOIN cr.chatParticipants cp2 " +
             "WHERE cr.chatRoomType = :roomType " +
-            "AND cp1.memberNo = :myMemberNo " +
-            "AND cp2.memberNo = :friendMemberNo")
+            "AND EXISTS (SELECT p FROM cr.chatParticipants p WHERE p.memberNo = :myMemberNo) " +
+            "AND EXISTS (SELECT p FROM cr.chatParticipants p WHERE p.memberNo = :friendMemberNo)")
     Optional<ChatRoomEntity> findChatRoomByMemberNosAndChatRoomType(
             @Param("myMemberNo") Long myMemberNo,
             @Param("friendMemberNo") Long friendMemberNo,

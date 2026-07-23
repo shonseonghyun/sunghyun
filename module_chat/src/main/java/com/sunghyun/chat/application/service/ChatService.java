@@ -1,6 +1,7 @@
 package com.sunghyun.chat.application.service;
 
-import com.sunghyun.chat.application.dto.*;
+import com.sunghyun.chat.application.dto.req.ChatMessageSendReqDto;
+import com.sunghyun.chat.application.dto.res.*;
 import com.sunghyun.chat.application.port.in.ChatUseCase;
 import com.sunghyun.chat.application.port.out.ChatRepository;
 import com.sunghyun.chat.domain.ChatMessage;
@@ -105,6 +106,7 @@ public class ChatService implements ChatUseCase {
         List<ChatMessage> chatMessageList = chatRepository.findLatestMessagesByRoomNos(roomNoList);
 
         // 각 방별 안 읽은 메시지 개수 조회 (Map으로 변환: chatRoomNo -> unreadCount)
+
         Map<Long, Long> unreadCountMap = chatRepository.findUnreadCountsByMemberNoAndRoomNos(memberNo, roomNoList)
                 .stream()
                 .collect(Collectors.toMap(

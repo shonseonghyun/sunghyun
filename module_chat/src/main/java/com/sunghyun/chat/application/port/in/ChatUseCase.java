@@ -1,6 +1,7 @@
 package com.sunghyun.chat.application.port.in;
 
-import com.sunghyun.chat.application.dto.*;
+import com.sunghyun.chat.application.dto.req.ChatMessageSendReqDto;
+import com.sunghyun.chat.application.dto.res.*;
 
 import java.util.List;
 

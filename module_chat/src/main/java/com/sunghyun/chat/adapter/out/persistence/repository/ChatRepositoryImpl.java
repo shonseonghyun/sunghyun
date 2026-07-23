@@ -3,7 +3,7 @@ package com.sunghyun.chat.adapter.out.persistence.repository;
 import com.sunghyun.chat.adapter.out.persistence.entity.ChatMessageEntity;
 import com.sunghyun.chat.adapter.out.persistence.entity.ChatParticipantEntity;
 import com.sunghyun.chat.adapter.out.persistence.entity.ChatRoomEntity;
-import com.sunghyun.chat.application.dto.UnreadCountMapping;
+import com.sunghyun.chat.application.dto.res.UnreadCountMapping;
 import com.sunghyun.chat.application.port.out.ChatRepository;
 import com.sunghyun.chat.domain.ChatMessage;
 import com.sunghyun.chat.domain.ChatParticipant;

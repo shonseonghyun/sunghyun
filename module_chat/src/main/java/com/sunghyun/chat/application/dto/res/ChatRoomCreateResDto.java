@@ -1,4 +1,4 @@
-package com.sunghyun.chat.application.dto;
+package com.sunghyun.chat.application.dto.res;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

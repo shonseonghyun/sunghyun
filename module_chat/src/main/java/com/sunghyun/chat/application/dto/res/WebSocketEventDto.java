@@ -1,4 +1,4 @@
-package com.sunghyun.chat.application.dto;
+package com.sunghyun.chat.application.dto.res;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sunghyun.chat.application.dto.enums.ChatEventType;

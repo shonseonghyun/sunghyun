@@ -1,8 +1,10 @@
 package com.sunghyun.chat.adapter.in.web;
 
 import com.sunghyun.annotation.AuthMember;
-import com.sunghyun.chat.application.dto.*;
 import com.sunghyun.chat.application.dto.enums.ChatEventType;
+import com.sunghyun.chat.application.dto.req.ChatMessageSendReqDto;
+import com.sunghyun.chat.application.dto.req.ChatReadReqDto;
+import com.sunghyun.chat.application.dto.res.*;
 import com.sunghyun.chat.application.port.in.ChatUseCase;
 import com.sunghyun.dto.AuthMemberInfo;
 import com.sunghyun.web.ErrorCode;
@@ -27,8 +29,8 @@ public class ChatController {
 
     @PostMapping("/chat/room/{friendMemberNo}")
     public GlobalResponse getOrCreateChatRoom(@PathVariable Long friendMemberNo, @AuthMember AuthMemberInfo authMemberInfo){
-        Long memberNo = authMemberInfo.getMemberNo();
-        ChatRoomCreateResDto result = chatUseCase.getOrCreateChatRoom(memberNo,friendMemberNo);
+        Long myMemberNo = authMemberInfo.getMemberNo();
+        ChatRoomCreateResDto result = chatUseCase.getOrCreateChatRoom(myMemberNo,friendMemberNo);
         return GlobalResponse.of(ErrorCode.S000,result);
     }
 
