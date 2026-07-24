@@ -3,11 +3,13 @@ package com.sunghyun.chat.application.service;
 import com.sunghyun.chat.application.dto.req.ChatMessageSendReqDto;
 import com.sunghyun.chat.application.dto.res.*;
 import com.sunghyun.chat.application.port.in.ChatUseCase;
-import com.sunghyun.chat.application.port.out.ChatRepository;
-import com.sunghyun.chat.domain.ChatMessage;
-import com.sunghyun.chat.domain.ChatParticipant;
-import com.sunghyun.chat.domain.ChatRoom;
-import com.sunghyun.chat.domain.enums.ChatRoomType;
+import com.sunghyun.chat.domain.message.repository.ChatMessageRepository;
+import com.sunghyun.chat.domain.room.repository.ChatRoomRepository;
+import com.sunghyun.chat.domain.message.ChatMessage;
+import com.sunghyun.chat.domain.room.ChatParticipant;
+import com.sunghyun.chat.domain.room.ChatRoom;
+import com.sunghyun.chat.domain.room.enums.ChatRoomType;
+import com.sunghyun.chat.domain.exception.NotFoundChatRoomException;
 import com.sunghyun.web.ErrorCode;
 import com.sunghyun.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
@@ -26,35 +28,36 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ChatService implements ChatUseCase {
-    private final ChatRepository chatRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     @Override
     public ChatRoomCreateResDto getOrCreateChatRoom(Long memberNo, Long friendMemberNo) {
-        return chatRepository.findChatRoomByMemberNosAndChatRoomType(memberNo, friendMemberNo, ChatRoomType.PRIVATE)
+        return chatRoomRepository.findChatRoomByMemberNosAndChatRoomType(memberNo, friendMemberNo, ChatRoomType.PRIVATE)
                 .map(existingChatRoom -> new ChatRoomCreateResDto(existingChatRoom.getChatRoomNo()))
                 .orElseGet(() -> {
                     // 기존 방이 없을 때만 새 방 생성 및 저장
                     ChatRoom newChatRoom = ChatRoom.createChatRoom(memberNo, friendMemberNo);
-                    ChatRoom savedChatRoom = chatRepository.save(newChatRoom);
+                    ChatRoom savedChatRoom = chatRoomRepository.save(newChatRoom);
                     return new ChatRoomCreateResDto(savedChatRoom.getChatRoomNo());
                 });
     }
 
     @Override
     public ChatMessageListResDto getChatMessages(Long chatRoomNo, Long lastMessageNo, int pageSize) {
+        // 페이징의 offset은 항상 0으로 고정하고, 한 번에 가져올 사이즈(LIMIT)만 지정합니다.
+        Pageable pageable = PageRequest.of(0, pageSize);
+
         // 방 정보 조회 (참여자 목록 추출용)
-        ChatRoom chatRoom = chatRepository.findChatRoomByChatRoomNo(chatRoomNo)
-                .orElseThrow(() -> new BaseException(ErrorCode.F000)); // 존재하지 않는 방 예외 처리
+        ChatRoom chatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
+                .orElseThrow(() -> new NotFoundChatRoomException(ErrorCode.Z000));
 
         // Domain의 참여자 정보를 DTO로 변환
         List<ChatParticipantResDto> participants = chatRoom.getChatParticipants().stream()
                 .map(ChatParticipantResDto::fromDomain)
                 .toList();
 
-        // 페이징의 offset은 항상 0으로 고정하고, 한 번에 가져올 사이즈(LIMIT)만 지정합니다.
-        Pageable pageable = PageRequest.of(0, pageSize);
-
-        List<ChatMessage> messages = chatRepository.findMessagesByRoomNo(chatRoomNo, lastMessageNo, pageable);
+        List<ChatMessage> messages = chatMessageRepository.findMessagesByRoomNo(chatRoomNo, lastMessageNo, pageable);
         List<ChatMessageResDto> messageDtos = messages.stream()
                 .map(ChatMessageResDto::fromDomain)
                 .toList();
@@ -65,28 +68,33 @@ public class ChatService implements ChatUseCase {
     @Override
     @Transactional
     public ChatReadResDto readChatMessage(Long chatRoomNo, Long memberNo, Long lastReadChatMessageNo) {
-        //ChatParticipant 찾기
-        ChatParticipant chatParticipant = chatRepository.findChatRoomByChatRoomNo(chatRoomNo)
-                .stream()
-                .map(ChatRoom::getChatParticipants)
-                .flatMap(List::stream) // List<ChatParticipant>를 개별 ChatParticipant 스트림으로 변환
-                .filter(cp -> cp.getMemberNo().equals(memberNo))
-                .findFirst()
-                .orElseThrow(() -> new BaseException(ErrorCode.F000));
+        // 루트 애그리거트는 ChatRoom이고 그 안에 ChatParticipant 도메인이 있다. 따라서, 루트 애그리거트인 ChatRoom을 통해서만 업데이트되어야 한다.
 
-        chatParticipant.readMessage(lastReadChatMessageNo);
-        chatRepository.save(chatParticipant);
+        //ChatParticipant 찾기
+//        ChatParticipant chatParticipant = chatRepository.findChatRoomByChatRoomNo(chatRoomNo)
+//                .stream()
+//                .map(ChatRoom::getChatParticipants)
+//                .flatMap(List::stream) // List<ChatParticipant>를 개별 ChatParticipant 스트림으로 변환
+//                .filter(cp -> cp.getMemberNo().equals(memberNo))
+//                .findFirst()
+//                .orElseThrow(() -> new NotFoundChatParticipantException(ErrorCode.Z001));
+
+        ChatRoom chatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
+                .orElseThrow(() -> new NotFoundChatRoomException(ErrorCode.Z000));
+
+        chatRoom.readMessageOfMember(memberNo,lastReadChatMessageNo);
+        chatRoomRepository.save(chatRoom);
 
         return ChatReadResDto.builder()
                 .chatRoomNo(chatRoomNo)
                 .memberNo(memberNo)
-                .lastReadChatMessageNo(chatParticipant.getLastReadChatMessageNo())
+                .lastReadChatMessageNo(lastReadChatMessageNo)
                 .build();
     }
 
     @Override
     public List<ChatRoomResDto> getMyChatRooms(Long memberNo) {
-        List<ChatRoom> chatRoomList = chatRepository.findChatRoomsByMemberNoAndChatRoomType(memberNo,ChatRoomType.PRIVATE);
+        List<ChatRoom> chatRoomList = chatRoomRepository.findChatRoomsByMemberNoAndChatRoomType(memberNo,ChatRoomType.PRIVATE);
 
         if(chatRoomList.isEmpty()){
             // 상대방과 대화방이 존재하지 않는 경우 바로 return
@@ -103,18 +111,17 @@ public class ChatService implements ChatUseCase {
 
         // 각 방 마지막 메시지 조회
         // 여기에 채팅방번호 있으니 위 애들은 필요 없다.
-        List<ChatMessage> chatMessageList = chatRepository.findLatestMessagesByRoomNos(roomNoList);
+        List<ChatMessage> lastChatMessageList = chatMessageRepository.findLatestMessagesByRoomNos(roomNoList);
 
         // 각 방별 안 읽은 메시지 개수 조회 (Map으로 변환: chatRoomNo -> unreadCount)
-
-        Map<Long, Long> unreadCountMap = chatRepository.findUnreadCountsByMemberNoAndRoomNos(memberNo, roomNoList)
+        Map<Long, Long> unreadCountMap = chatRoomRepository.findUnreadCountsByMemberNoAndRoomNos(memberNo, roomNoList)
                 .stream()
                 .collect(Collectors.toMap(
                         UnreadCountMapping::getRoomNo,
                         UnreadCountMapping::getUnreadCount
                 ));
 
-        return chatMessageList.stream()
+        return lastChatMessageList.stream()
                 .map(chatMessage -> {
                     Long roomNo = chatMessage.getChatRoomNo();
 
@@ -151,7 +158,8 @@ public class ChatService implements ChatUseCase {
     @Override
     @Transactional
     public ChatMessageSendResDto createChatMessage(Long chatRoomNo, ChatMessageSendReqDto payload) {
-        Long receiverMemberNo = chatRepository.findChatRoomByChatRoomNo(chatRoomNo)
+        //이게 왜 필요할까?
+        Long receiverMemberNo = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
                 .stream()
                 .map(ChatRoom::getChatParticipants)
                 .flatMap(List::stream) // List<ChatParticipant>를 개별 ChatParticipant 스트림으로 변환
@@ -167,7 +175,7 @@ public class ChatService implements ChatUseCase {
                 payload.getMessageType()
         );
 
-        ChatMessage savedChatMessage = chatRepository.save(chatMessage);
+        ChatMessage savedChatMessage = chatMessageRepository.save(chatMessage);
 
         return ChatMessageSendResDto.fromDomain(savedChatMessage, payload.getName(), receiverMemberNo);
     }

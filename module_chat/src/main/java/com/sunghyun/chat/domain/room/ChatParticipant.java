@@ -1,4 +1,4 @@
-package com.sunghyun.chat.domain;
+package com.sunghyun.chat.domain.room;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

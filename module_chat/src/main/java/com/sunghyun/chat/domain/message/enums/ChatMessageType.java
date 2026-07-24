@@ -1,4 +1,4 @@
-package com.sunghyun.chat.domain.enums;
+package com.sunghyun.chat.domain.message.enums;
 
 public enum ChatMessageType {
     TALK,    // 일반 문자 및 이모지

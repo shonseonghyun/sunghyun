@@ -1,6 +1,6 @@
-package com.sunghyun.chat.domain;
+package com.sunghyun.chat.domain.message;
 
-import com.sunghyun.chat.domain.enums.ChatMessageType;
+import com.sunghyun.chat.domain.message.enums.ChatMessageType;
 import com.sunghyun.utils.ApiUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

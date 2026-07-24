@@ -1,7 +1,9 @@
-package com.sunghyun.chat.domain;
+package com.sunghyun.chat.domain.room;
 
-import com.sunghyun.chat.domain.enums.ChatRoomType;
+import com.sunghyun.chat.domain.room.enums.ChatRoomType;
+import com.sunghyun.chat.domain.exception.NotFoundChatParticipantException;
 import com.sunghyun.utils.ApiUtils;
+import com.sunghyun.web.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,5 +37,15 @@ public class ChatRoom {
                 .createdTm(ApiUtils.getCurrentTm())
                 .build()
                 ;
+    }
+
+    public void readMessageOfMember(Long memberNo, Long lastReadChatMessageNo) {
+        ChatParticipant readedParticipant = this.getChatParticipants()
+                .stream()
+                .filter(chatParticipant -> chatParticipant.getMemberNo().equals(memberNo))
+                .findFirst()
+                .orElseThrow(()->new NotFoundChatParticipantException(ErrorCode.Z001));
+
+        readedParticipant.readMessage(lastReadChatMessageNo);
     }
 }

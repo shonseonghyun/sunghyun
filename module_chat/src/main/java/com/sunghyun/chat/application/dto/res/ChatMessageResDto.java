@@ -1,7 +1,7 @@
 package com.sunghyun.chat.application.dto.res;
 
-import com.sunghyun.chat.domain.ChatMessage;
-import com.sunghyun.chat.domain.enums.ChatMessageType;
+import com.sunghyun.chat.domain.message.ChatMessage;
+import com.sunghyun.chat.domain.message.enums.ChatMessageType;
 import lombok.Builder;
 import lombok.Getter;
 

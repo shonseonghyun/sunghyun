@@ -47,6 +47,11 @@ public enum ErrorCode {
     // -HttpStatus.OK,-- 아웃박스 관련 (O) ---
     O000(HttpStatus.NOT_FOUND, "존재하지 않는 아웃박스입니다."),
 
+    // -HttpStatus.OK,-- 채팅 (Z) ---
+    Z000(HttpStatus.NOT_FOUND, "존재하지 않는 채팅방입니다."),
+    Z001(HttpStatus.NOT_FOUND, "해당 채팅방에 참여한 회원인지 확인 바랍니다"),
+
+
     // -HttpStatus.OK,-- 인증,인가 (T) ---
     T00(HttpStatus.UNAUTHORIZED, "잘못된 JWT 서명 또는 손상된 토큰입니다."),
     T01(HttpStatus.UNAUTHORIZED, "만료된 JWT 토큰입니다."),

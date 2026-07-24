@@ -1,6 +1,6 @@
 package com.sunghyun.chat.application.dto.req;
 
-import com.sunghyun.chat.domain.enums.ChatMessageType;
+import com.sunghyun.chat.domain.message.enums.ChatMessageType;
 import lombok.Getter;
 import lombok.ToString;
 

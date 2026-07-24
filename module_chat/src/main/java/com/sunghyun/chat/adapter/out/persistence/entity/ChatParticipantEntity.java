@@ -1,6 +1,6 @@
 package com.sunghyun.chat.adapter.out.persistence.entity;
 
-import com.sunghyun.chat.domain.ChatParticipant;
+import com.sunghyun.chat.domain.room.ChatParticipant;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +22,8 @@ public class ChatParticipantEntity {
     private Long memberNo;
 
     //chat_room_no (FK 존재)
+    @Column(name = "chat_room_no", insertable = false, updatable = false)
+    private Long chatRoomNo;
 
     @Column
     private boolean isLeft;

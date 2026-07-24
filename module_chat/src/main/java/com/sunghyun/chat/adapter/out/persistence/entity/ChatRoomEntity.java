@@ -1,7 +1,7 @@
 package com.sunghyun.chat.adapter.out.persistence.entity;
 
-import com.sunghyun.chat.domain.ChatRoom;
-import com.sunghyun.chat.domain.enums.ChatRoomType;
+import com.sunghyun.chat.domain.room.ChatRoom;
+import com.sunghyun.chat.domain.room.enums.ChatRoomType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +24,7 @@ public class ChatRoomEntity {
     @Enumerated(EnumType.STRING)
     private ChatRoomType chatRoomType;
 
-    @OneToMany(cascade = {CascadeType.PERSIST})
+    @OneToMany(cascade = {CascadeType.PERSIST,CascadeType.MERGE})
     @JoinColumn(name = "chat_room_no",updatable = false,nullable = false)
     private List<ChatParticipantEntity> chatParticipants;
 

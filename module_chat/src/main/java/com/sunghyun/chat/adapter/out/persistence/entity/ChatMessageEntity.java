@@ -1,7 +1,7 @@
 package com.sunghyun.chat.adapter.out.persistence.entity;
 
-import com.sunghyun.chat.domain.ChatMessage;
-import com.sunghyun.chat.domain.enums.ChatMessageType;
+import com.sunghyun.chat.domain.message.ChatMessage;
+import com.sunghyun.chat.domain.message.enums.ChatMessageType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package com.sunghyun.chat.domain.enums;
+package com.sunghyun.chat.domain.room.enums;
 
 public enum ChatRoomType {
     TEAM,

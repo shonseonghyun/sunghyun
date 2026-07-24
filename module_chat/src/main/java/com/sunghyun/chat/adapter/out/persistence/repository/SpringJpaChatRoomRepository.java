@@ -1,7 +1,7 @@
 package com.sunghyun.chat.adapter.out.persistence.repository;
 
 import com.sunghyun.chat.adapter.out.persistence.entity.ChatRoomEntity;
-import com.sunghyun.chat.domain.enums.ChatRoomType;
+import com.sunghyun.chat.domain.room.enums.ChatRoomType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,12 +23,19 @@ public interface SpringJpaChatRoomRepository extends JpaRepository<ChatRoomEntit
     );
 
     @Query("SELECT DISTINCT cr FROM ChatRoomEntity cr " +
-            "JOIN FETCH cr.chatParticipants " + // 참여자 데이터 다 긁어오기 (N+1 방지)
-            "JOIN cr.chatParticipants cp " +    // 내 조건 걸기용 조인
+            "JOIN FETCH cr.chatParticipants " +
             "WHERE cr.chatRoomType = :roomType " +
-            "AND cp.memberNo = :myMemberNo")
+            "AND cr.chatRoomNo IN (" +
+            "    SELECT p.chatRoomNo FROM ChatParticipantEntity p WHERE p.memberNo = :myMemberNo" +
+            ")")
     List<ChatRoomEntity> findChatRoomsByMemberNoAndChatRoomType(
             @Param("myMemberNo") Long myMemberNo,
             @Param("roomType") ChatRoomType roomType
     );
+
+    @Query("SELECT cr FROM ChatRoomEntity cr " +
+            "JOIN FETCH cr.chatParticipants " +
+            "WHERE cr.chatRoomNo=:chatRoomNo"
+    )
+    Optional<ChatRoomEntity> findChatRoomByChatRoomNo(Long chatRoomNo);
 }
