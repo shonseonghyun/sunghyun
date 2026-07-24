@@ -5,6 +5,7 @@ import com.sunghyun.chat.application.dto.res.*;
 import com.sunghyun.chat.application.port.in.ChatUseCase;
 import com.sunghyun.chat.application.port.out.ChatEventPublisherPort;
 import com.sunghyun.chat.application.port.out.dto.ChatEvent;
+import com.sunghyun.chat.domain.dto.UnreadCountMapping;
 import com.sunghyun.chat.domain.exception.NotFoundChatRoomException;
 import com.sunghyun.chat.domain.message.ChatMessage;
 import com.sunghyun.chat.domain.message.repository.ChatMessageRepository;

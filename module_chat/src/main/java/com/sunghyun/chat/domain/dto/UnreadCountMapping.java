@@ -1,4 +1,4 @@
-package com.sunghyun.chat.application.dto.res;
+package com.sunghyun.chat.domain.dto;
 
 public interface UnreadCountMapping {
     Long getChatRoomNo();

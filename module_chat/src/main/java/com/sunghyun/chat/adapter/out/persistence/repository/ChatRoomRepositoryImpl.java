@@ -1,9 +1,7 @@
 package com.sunghyun.chat.adapter.out.persistence.repository;
 
-import com.sunghyun.chat.adapter.out.persistence.entity.ChatParticipantEntity;
 import com.sunghyun.chat.adapter.out.persistence.entity.ChatRoomEntity;
-import com.sunghyun.chat.application.dto.res.UnreadCountMapping;
-import com.sunghyun.chat.domain.room.ChatParticipant;
+import com.sunghyun.chat.domain.dto.UnreadCountMapping;
 import com.sunghyun.chat.domain.room.ChatRoom;
 import com.sunghyun.chat.domain.room.enums.ChatRoomType;
 import com.sunghyun.chat.domain.room.repository.ChatRoomRepository;
@@ -26,12 +24,6 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
     }
 
     @Override
-    public ChatParticipant save(ChatParticipant chatParticipant) {
-        return springJpaChatParticipantRepository.save(ChatParticipantEntity.fromDomain(chatParticipant))
-                .toDomain();
-    }
-
-    @Override
     public Optional<ChatRoom> findChatRoomByChatRoomNo(Long chatRoomNo) {
         return springJpaChatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
                 .map(ChatRoomEntity::toDomain)
@@ -43,14 +35,6 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
         return springJpaChatRoomRepository.findChatRoomByMemberNosAndChatRoomType(memberNo,friendMemberNo,chatRoomType)
                 .map(ChatRoomEntity::toDomain)
                 ;
-    }
-
-    @Override
-    public List<ChatRoom> findChatRoomsByMemberNoAndChatRoomType(Long memberNo, ChatRoomType chatRoomType) {
-        return springJpaChatRoomRepository.findChatRoomsByMemberNoAndChatRoomType(memberNo, chatRoomType)
-                .stream()
-                .map(ChatRoomEntity::toDomain)
-                .toList();
     }
 
     @Override

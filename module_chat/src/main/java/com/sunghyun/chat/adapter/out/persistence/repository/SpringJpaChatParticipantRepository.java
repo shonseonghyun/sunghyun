@@ -1,7 +1,7 @@
 package com.sunghyun.chat.adapter.out.persistence.repository;
 
 import com.sunghyun.chat.adapter.out.persistence.entity.ChatParticipantEntity;
-import com.sunghyun.chat.application.dto.res.UnreadCountMapping;
+import com.sunghyun.chat.domain.dto.UnreadCountMapping;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
