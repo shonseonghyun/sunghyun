@@ -9,10 +9,9 @@ import lombok.ToString;
 public class ChatMessageSendReqDto {
     private Long chatMessageNo;
 
+    private String senderName;
     private Long senderMemberNo;
-    private Long receiverMemberNo;
 
-    private String name;
     private ChatMessageType messageType;
     private String content;
 }

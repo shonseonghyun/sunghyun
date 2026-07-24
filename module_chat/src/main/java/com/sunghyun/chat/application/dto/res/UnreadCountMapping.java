@@ -1,6 +1,6 @@
 package com.sunghyun.chat.application.dto.res;
 
 public interface UnreadCountMapping {
-    Long getRoomNo();
-    Long getUnreadCount();
+    Long getChatRoomNo();
+    Integer getUnreadCount();
 }

@@ -57,4 +57,12 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
     public List<UnreadCountMapping> findUnreadCountsByMemberNoAndRoomNos(Long memberNo, List<Long> roomNoList) {
         return springJpaChatParticipantRepository.findUnreadCountsByMemberNoAndRoomNos(memberNo,roomNoList);
     }
+
+    @Override
+    public List<ChatRoom> findChatRoomsByMemberNo(Long memberNo) {
+        return springJpaChatRoomRepository.findChatRoomByMemberNo(memberNo)
+                .stream()
+                .map(ChatRoomEntity::toDomain)
+                .toList();
+    }
 }

@@ -10,12 +10,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class WebSocketEventDto<T> {
+public class WebSocketResDto<T> {
     private ChatEventType eventType;
     private T data;
 
-    public static <T> WebSocketEventDto of(ChatEventType eventType, T data) {
-        return WebSocketEventDto.<T>builder()
+    public static <T> WebSocketResDto of(ChatEventType eventType, T data) {
+        return WebSocketResDto.<T>builder()
                 .eventType(eventType)
                 .data(data)
                 .build()

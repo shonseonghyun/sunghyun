@@ -3,15 +3,15 @@ package com.sunghyun.chat.application.service;
 import com.sunghyun.chat.application.dto.req.ChatMessageSendReqDto;
 import com.sunghyun.chat.application.dto.res.*;
 import com.sunghyun.chat.application.port.in.ChatUseCase;
-import com.sunghyun.chat.domain.message.repository.ChatMessageRepository;
-import com.sunghyun.chat.domain.room.repository.ChatRoomRepository;
+import com.sunghyun.chat.application.port.out.ChatEventPublisherPort;
+import com.sunghyun.chat.application.port.out.dto.ChatEvent;
+import com.sunghyun.chat.domain.exception.NotFoundChatRoomException;
 import com.sunghyun.chat.domain.message.ChatMessage;
-import com.sunghyun.chat.domain.room.ChatParticipant;
+import com.sunghyun.chat.domain.message.repository.ChatMessageRepository;
 import com.sunghyun.chat.domain.room.ChatRoom;
 import com.sunghyun.chat.domain.room.enums.ChatRoomType;
-import com.sunghyun.chat.domain.exception.NotFoundChatRoomException;
+import com.sunghyun.chat.domain.room.repository.ChatRoomRepository;
 import com.sunghyun.web.ErrorCode;
-import com.sunghyun.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 public class ChatService implements ChatUseCase {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final ChatEventPublisherPort chatEventPublisherPort;
 
     @Override
     public ChatRoomCreateResDto getOrCreateChatRoom(Long memberNo, Long friendMemberNo) {
@@ -84,89 +85,170 @@ public class ChatService implements ChatUseCase {
 
         chatRoom.readMessageOfMember(memberNo,lastReadChatMessageNo);
         chatRoomRepository.save(chatRoom);
-
-        return ChatReadResDto.builder()
+        ChatReadResDto result = ChatReadResDto.builder()
                 .chatRoomNo(chatRoomNo)
                 .memberNo(memberNo)
                 .lastReadChatMessageNo(lastReadChatMessageNo)
                 .build();
+
+        chatEventPublisherPort.publishReadMessageUpdated(new ChatEvent.MessageRead(chatRoomNo, result));
+
+        return result;
     }
+
+//    @Override
+//    public List<ChatRoomResDto> getMyChatRooms(Long memberNo) {
+//        //1:1 채팅방이면, 상대방이 나간 경우, 가장 마지막 메시지를 보여주고, "??님이 채팅방을 나갔습니다." 보여주기
+//        //단체 채팅방이면 회원 수와 상대방 명들, 가장 마지막 메시지 보여주고, 회원이 나갈 경우 "??님이 채팅방을 나갔습니다." 보여주기
+//        //팀 단체방이면, 팀명과 회원 수, 가장 마지막 메시지 보여주고, 회원 나갈 경우 "??님이 채팅방을 나갔습니다." 보여주기
+//
+//        // 채팅방 들간 순서 정렬은 최신 메시지 순으로 정렬한다.
+//
+//        List<ChatRoom> chatRoomList = chatRoomRepository.findChatRoomsByMemberNoAndChatRoomType(memberNo,ChatRoomType.PRIVATE);
+//
+//        if(chatRoomList.isEmpty()){
+//            // 상대방과 대화방이 존재하지 않는 경우 바로 return
+//            return Collections.emptyList();
+//        }
+//
+//        // 조회할 방 번호 리스트 추출
+//        List<Long> roomNoList = chatRoomList.stream()
+//                .map(ChatRoom::getChatRoomNo)
+//                .toList();
+//
+//        Map<Long, List<ChatParticipant>> roomMap = chatRoomList.stream()
+//                .collect(Collectors.toMap(ChatRoom::getChatRoomNo,ChatRoom::getChatParticipants));
+//
+//        // 각 방 마지막 메시지 조회
+//        // 여기에 채팅방번호 있으니 위 애들은 필요 없다.
+//        List<ChatMessage> lastChatMessageList = chatMessageRepository.findLatestMessagesByRoomNos(roomNoList);
+//
+//        // 각 방별 안 읽은 메시지 개수 조회 (Map으로 변환: chatRoomNo -> unreadCount)
+//        Map<Long, Long> unreadCountMap = chatRoomRepository.findUnreadCountsByMemberNoAndRoomNos(memberNo, roomNoList)
+//                .stream()
+//                .collect(Collectors.toMap(
+//                        UnreadCountMapping::getRoomNo,
+//                        UnreadCountMapping::getUnreadCount
+//                ));
+//
+//        // 만약 상대방이 나갔다면?
+//
+//        return lastChatMessageList.stream()
+//                .map(chatMessage -> {
+//                    Long roomNo = chatMessage.getChatRoomNo();
+//
+//                    //상대방 누군지
+//                    Long friendMemberNo = roomMap.get(roomNo)
+//                            .stream()
+//                            .map(ChatParticipant::getMemberNo)
+//                            .filter(chatParticipant -> !chatParticipant.equals(memberNo))
+//                            .findFirst()
+//                            .orElse(null);
+//
+//                    Long unreadCount = unreadCountMap.getOrDefault(roomNo, 0L);
+//
+//                    return ChatRoomResDto.builder()
+//                            .chatRoomNo(roomNo)
+//                            .friendMemberNo(friendMemberNo)
+//                            .messageType(chatMessage.getMessageType())
+//                            .lastContent(chatMessage.getContent())
+//                            .lastSendDt(chatMessage.getSendDt())
+//                            .lastSendTm(chatMessage.getSendTm())
+//                            .lastSenderMemberNo(chatMessage.getSenderMemberNo())
+//                            .unreadCount(unreadCount)
+//                            .build();
+//                })
+//                .sorted((a, b) -> {
+//                    String dateTimeA = a.getLastSendDt() + a.getLastSendTm();
+//                    String dateTimeB = b.getLastSendDt() + b.getLastSendTm();
+//                    return dateTimeB.compareTo(dateTimeA); // 문자열 내림차순 비교
+//                })
+//                .toList()
+//                ;
+//    }
 
     @Override
     public List<ChatRoomResDto> getMyChatRooms(Long memberNo) {
-        List<ChatRoom> chatRoomList = chatRoomRepository.findChatRoomsByMemberNoAndChatRoomType(memberNo,ChatRoomType.PRIVATE);
+        //1:1 채팅방이면, 상대방이 나간 경우, 가장 마지막 메시지를 보여주고, "??님이 채팅방을 나갔습니다." 보여주기
+        //단체 채팅방이면 회원 수와 상대방 명들, 가장 마지막 메시지 보여주고, 회원이 나갈 경우 "??님이 채팅방을 나갔습니다." 보여주기
+        //팀 단체방이면, 팀명과 회원 수, 가장 마지막 메시지 보여주고, 회원 나갈 경우 "??님이 채팅방을 나갔습니다." 보여주기
 
+        // 채팅방 들간 순서 정렬은 최신 메시지 순으로 정렬한다.
+
+        //1. 우선, 회원이 참여한 모든 채팅방을 추출한다.
+        List<ChatRoom> chatRoomList = chatRoomRepository.findChatRoomsByMemberNo(memberNo);
+
+        //2. 참여한 채팅방이 존재하지 않으면 바로 return한다.
         if(chatRoomList.isEmpty()){
-            // 상대방과 대화방이 존재하지 않는 경우 바로 return
             return Collections.emptyList();
         }
 
-        // 조회할 방 번호 리스트 추출
+        //3. 각 방 별로 마지막 메시지를 추출한다.
         List<Long> roomNoList = chatRoomList.stream()
                 .map(ChatRoom::getChatRoomNo)
                 .toList();
 
-        Map<Long, List<ChatParticipant>> roomMap = chatRoomList.stream()
-                .collect(Collectors.toMap(ChatRoom::getChatRoomNo,ChatRoom::getChatParticipants));
-
-        // 각 방 마지막 메시지 조회
-        // 여기에 채팅방번호 있으니 위 애들은 필요 없다.
-        List<ChatMessage> lastChatMessageList = chatMessageRepository.findLatestMessagesByRoomNos(roomNoList);
-
-        // 각 방별 안 읽은 메시지 개수 조회 (Map으로 변환: chatRoomNo -> unreadCount)
-        Map<Long, Long> unreadCountMap = chatRoomRepository.findUnreadCountsByMemberNoAndRoomNos(memberNo, roomNoList)
+        // 각 방 별 마지막 메시지(도메인) 담은 map
+        Map<Long,ChatMessage> lastChatMessageMap = chatMessageRepository.findLatestMessagesByRoomNos(roomNoList)
                 .stream()
                 .collect(Collectors.toMap(
-                        UnreadCountMapping::getRoomNo,
+                        ChatMessage::getChatRoomNo,
+                        chatMessage -> chatMessage
+                        )
+                );
+
+        //4. 각 방 별 안 읽은 메시지 개수를 담은 map
+        Map<Long,Integer> unreadCountMap = chatRoomRepository.findUnreadCountsByMemberNoAndRoomNos(memberNo, roomNoList)
+                .stream()
+                .collect(Collectors.toMap(
+                        UnreadCountMapping::getChatRoomNo,
                         UnreadCountMapping::getUnreadCount
                 ));
 
-        return lastChatMessageList.stream()
-                .map(chatMessage -> {
-                    Long roomNo = chatMessage.getChatRoomNo();
+        return chatRoomList.stream()
+                .map(chatRoom -> {
+                    Long chatRoomNo = chatRoom.getChatRoomNo();
+                    ChatMessage lastChatMessage = lastChatMessageMap.get(chatRoomNo);
 
-                    //상대방 누군지
-                    Long friendMemberNo = roomMap.get(roomNo)
-                            .stream()
-                            .map(ChatParticipant::getMemberNo)
-                            .filter(chatParticipant -> !chatParticipant.equals(memberNo))
-                            .findFirst()
-                            .orElse(null);
-
-                    Long unreadCount = unreadCountMap.getOrDefault(roomNo, 0L);
+                    // 마지막 메시지가 있는 경우 DTO 생성
+                    LastMessageInfoResDto lastMessageInfo = (lastChatMessage != null)
+                            ? new LastMessageInfoResDto(
+                            lastChatMessage.getContent(),
+                            lastChatMessage.getMessageType(),
+                            lastChatMessage.getSendDt(),
+                            lastChatMessage.getSendTm())
+                            : null;
 
                     return ChatRoomResDto.builder()
-                            .chatRoomNo(roomNo)
-                            .friendMemberNo(friendMemberNo)
-                            .messageType(chatMessage.getMessageType())
-                            .lastContent(chatMessage.getContent())
-                            .lastSendDt(chatMessage.getSendDt())
-                            .lastSendTm(chatMessage.getSendTm())
-                            .lastSenderMemberNo(chatMessage.getSenderMemberNo())
-                            .unreadCount(unreadCount)
+                            .chatRoomNo(chatRoomNo)
+                            .chatRoomType(chatRoom.getChatRoomType())
+                            .friendMembersNo(chatRoom.getReceiverMemberNos(memberNo))
+                            .participantCount(chatRoom.getParticipantCount())
+                            .lastMessageInfo(lastMessageInfo)
+                            .unreadCount(unreadCountMap.getOrDefault(chatRoomNo, 0))
                             .build();
                 })
-                .sorted((a, b) -> {
-                    String dateTimeA = a.getLastSendDt() + a.getLastSendTm();
-                    String dateTimeB = b.getLastSendDt() + b.getLastSendTm();
-                    return dateTimeB.compareTo(dateTimeA); // 문자열 내림차순 비교
+                .sorted((a, b) -> { // 주석의 요구사항 반영: 최신 메시지 날짜/시간 내림차순 정렬
+                    if (a.getLastMessageInfo() == null) return 1;  // 메시지 없는 방은 뒤로
+                    if (b.getLastMessageInfo() == null) return -1;
+
+                    String dateTimeA = a.getLastMessageInfo().getSendDt() + a.getLastMessageInfo().getSendTm();
+                    String dateTimeB = b.getLastMessageInfo().getSendDt() + b.getLastMessageInfo().getSendTm();
+
+                    return dateTimeB.compareTo(dateTimeA); // 최신순(내림차순)
                 })
-                .toList()
-                ;
+                .toList();
     }
 
     @Override
     @Transactional
     public ChatMessageSendResDto createChatMessage(Long chatRoomNo, ChatMessageSendReqDto payload) {
-        //이게 왜 필요할까?
-        Long receiverMemberNo = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
-                .stream()
-                .map(ChatRoom::getChatParticipants)
-                .flatMap(List::stream) // List<ChatParticipant>를 개별 ChatParticipant 스트림으로 변환
-                .map(ChatParticipant::getMemberNo)
-                .filter(memberNo -> !memberNo.equals(payload.getSenderMemberNo()))
-                .findFirst()
-                .orElseThrow(() -> new BaseException(ErrorCode.F000));
+        // 이게 왜 필요할까? 상대방에게 메시지 전송 알리기 위해 필요하다.
+        // 여러명 있는 경우도 커버하도록 수정
+        ChatRoom selectedChatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
+                .orElseThrow(() -> new NotFoundChatRoomException(ErrorCode.Z000));
+
+        List<Long> receiverMembersNo = selectedChatRoom.getReceiverMemberNos(payload.getSenderMemberNo());
 
         ChatMessage chatMessage = ChatMessage.createChatMessage(
                 chatRoomNo,
@@ -177,6 +259,13 @@ public class ChatService implements ChatUseCase {
 
         ChatMessage savedChatMessage = chatMessageRepository.save(chatMessage);
 
-        return ChatMessageSendResDto.fromDomain(savedChatMessage, payload.getName(), receiverMemberNo);
+        ChatMessageSendResDto result = ChatMessageSendResDto.fromDomain(savedChatMessage, payload.getSenderName(), receiverMembersNo);
+
+        // 메시지 내부 저장 실패 시 상대방들에게 알림하도록 publish해야할까?
+        // 아니다.
+
+        chatEventPublisherPort.publishChatMessageCreated(new ChatEvent.MessageCreated(chatRoomNo, result));
+
+        return result;
     }
 }

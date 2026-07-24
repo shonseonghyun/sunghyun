@@ -1,23 +1,30 @@
 package com.sunghyun.chat.application.dto.res;
 
-import com.sunghyun.chat.domain.message.enums.ChatMessageType;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.sunghyun.chat.domain.room.enums.ChatRoomType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @Builder
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChatRoomResDto {
     private Long chatRoomNo;
-    private Long friendMemberNo;
+    private ChatRoomType chatRoomType;
 
-    private ChatMessageType messageType;
-    private Long lastSenderMemberNo;
-    private String lastContent;
+    //상대방들 번호
+    private List<Long> friendMembersNo;
 
-    private String lastSendDt;
-    private String lastSendTm;
+    //총 인원 수
+    private Integer participantCount;
 
-    private Long unreadCount; // 안 읽은 메시지 수 추가
+    private Long lastSenderMemberNo; //이게 필요한가? 프론트 확인 필요.
+
+    private LastMessageInfoResDto lastMessageInfo;
+
+    private Integer unreadCount;
 }

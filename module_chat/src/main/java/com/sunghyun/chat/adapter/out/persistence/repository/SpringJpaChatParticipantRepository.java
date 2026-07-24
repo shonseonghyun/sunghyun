@@ -11,7 +11,7 @@ import java.util.List;
 public interface SpringJpaChatParticipantRepository extends JpaRepository<ChatParticipantEntity, Long> {
 
     @Query(value =
-            "SELECT cm.chat_room_no AS roomNo, COUNT(cm.chat_message_no) AS unreadCount " +
+            "SELECT cm.chat_room_no AS chatRoomNo, COUNT(cm.chat_message_no) AS unreadCount " +
                     "FROM chat_participant cp " +
                     "JOIN chat_message cm ON cp.chat_room_no = cm.chat_room_no " +
                     "WHERE cp.member_no = :memberNo " +

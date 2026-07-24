@@ -27,7 +27,8 @@ public interface SpringJpaChatRoomRepository extends JpaRepository<ChatRoomEntit
             "WHERE cr.chatRoomType = :roomType " +
             "AND cr.chatRoomNo IN (" +
             "    SELECT p.chatRoomNo FROM ChatParticipantEntity p WHERE p.memberNo = :myMemberNo" +
-            ")")
+            ")"
+    )
     List<ChatRoomEntity> findChatRoomsByMemberNoAndChatRoomType(
             @Param("myMemberNo") Long myMemberNo,
             @Param("roomType") ChatRoomType roomType
@@ -37,5 +38,15 @@ public interface SpringJpaChatRoomRepository extends JpaRepository<ChatRoomEntit
             "JOIN FETCH cr.chatParticipants " +
             "WHERE cr.chatRoomNo=:chatRoomNo"
     )
-    Optional<ChatRoomEntity> findChatRoomByChatRoomNo(Long chatRoomNo);
+    Optional<ChatRoomEntity> findChatRoomByChatRoomNo(@Param("chatRoomNo") Long chatRoomNo);
+
+    @Query("SELECT DISTINCT cr FROM ChatRoomEntity cr " +
+            "JOIN FETCH cr.chatParticipants " +
+            "WHERE cr.chatRoomNo IN (" +
+            "      SELECT p.chatRoomNo " +
+            "      FROM ChatParticipantEntity p " +
+            "      WHERE p.memberNo = :memberNo" +
+            ")"
+    )
+    List<ChatRoomEntity> findChatRoomByMemberNo(@Param("memberNo") Long memberNo);
 }

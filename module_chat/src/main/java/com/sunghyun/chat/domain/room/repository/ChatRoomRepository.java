@@ -15,4 +15,5 @@ public interface ChatRoomRepository {
     Optional<ChatRoom> findChatRoomByMemberNosAndChatRoomType(Long memberNo, Long friendMemberNo, ChatRoomType chatRoomType);
     List<ChatRoom> findChatRoomsByMemberNoAndChatRoomType(Long memberNo, ChatRoomType chatRoomType);
     List<UnreadCountMapping> findUnreadCountsByMemberNoAndRoomNos(Long memberNo, List<Long> roomNoList);
+    List<ChatRoom> findChatRoomsByMemberNo(Long memberNo);
 }
