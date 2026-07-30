@@ -57,7 +57,7 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
             String accessToken = getAccessToken(headerAccessor);
 
             // 토큰 검증
-            jwtProvider.validate(accessToken);
+            jwtProvider.validate(accessToken+"s");
 
             // Principal 획득 후 STOMP 세션에 유저 등록
             Principal principal = jwtProvider.getPrincipal(accessToken);
