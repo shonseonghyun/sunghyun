@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
     public GlobalResponse handleException(Exception exception){
         //NullPointerException 같은 개발자가 확안하지 못한 예외 잡자.
         log.error("의도치 않은 예외가 발생하였습니다.");
-        return GlobalResponse.of(ErrorCode.F000);
+        return GlobalResponse.of(ErrorCode.F001);
     }
 
     @ExceptionHandler(BaseException.class)

@@ -10,6 +10,7 @@ public enum ErrorCode {
     // --- 공통 (S, F, C) ---
     S000(HttpStatus.OK, "요청에 성공하였습니다."),
     F000(HttpStatus.BAD_REQUEST, "실패"),
+    F001(HttpStatus.BAD_REQUEST, "의도치 못한 예외가 발생하였습니다. 문의 바랍니다. "),
     C400(HttpStatus.BAD_REQUEST, "잘못된 요청 형식입니다."),      // Type Mismatch 등
     C404(HttpStatus.NOT_FOUND, "존재하지 않는 경로이거나 찾을 수 없는 리소스입니다."), // 405 Method Not Allowed
     C405(HttpStatus.METHOD_NOT_ALLOWED, "지원하지 않는 HTTP 메소드입니다."), // 405 Method Not Allowed
