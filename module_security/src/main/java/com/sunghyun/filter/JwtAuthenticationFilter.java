@@ -22,7 +22,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        final String accessToken = jwtProvider.resolveToken(request);
+        final String accessToken = jwtProvider.resolveTokenInRequest(request);
 
         if(StringUtils.hasText(accessToken) && jwtProvider.validate(accessToken)){
             // 토큰 검증 성공 시 뭘 해야할까?? 토큰의 데이터들은 어디서 쓰일까?
