@@ -9,6 +9,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.messaging.StompSubProtocolErrorHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import java.util.List;
@@ -20,9 +21,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final HandshakeInterceptor socketInterceptor;
     private final ChannelInterceptor authenticationChannelInterceptor;
     private final HandlerMethodArgumentResolver stompAuthMemberArgumentResolver;
+    private final StompSubProtocolErrorHandler stompErrorHandler;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.setErrorHandler(stompErrorHandler);
+
         // Websocket 연결 endpoint 설정
         registry.addEndpoint("/ws/chat")
 //                .addInterceptors(socketInterceptor)
