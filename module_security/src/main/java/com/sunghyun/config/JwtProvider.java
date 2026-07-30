@@ -3,6 +3,7 @@ package com.sunghyun.config;
 import com.sunghyun.dto.AuthMemberInfo;
 import com.sunghyun.dto.TokenReqDto;
 import com.sunghyun.dto.TokenResDto;
+import com.sunghyun.dto.UserPrincipal;
 import com.sunghyun.exceptions.InvalidTokenException;
 import com.sunghyun.web.ErrorCode;
 import io.jsonwebtoken.Claims;
@@ -21,6 +22,7 @@ import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -43,8 +45,12 @@ public class JwtProvider {
     @Value("${security.jwt.refresh.token.expire}")
     private Long refreshTokenExpirationTime;
 
-    public String resolveToken(HttpServletRequest request) {
+    public String resolveTokenInRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        return resolveTokenInBearer(bearerToken);
+    }
+
+    public String resolveTokenInBearer(String bearerToken) {
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
@@ -147,6 +153,19 @@ public class JwtProvider {
         return true;
     }
 
+    private AuthMemberInfo extractAuthMemberInfo(Claims claims) {
+        AuthMemberInfo authMemberInfo = AuthMemberInfo.builder()
+                .memberNo(claims.get("memberNo", Long.class))
+                .id(claims.getSubject())
+                .name(claims.get("name", String.class))
+                .build();
+
+        return authMemberInfo;
+    }
+
+    // -------------------------------------------------------------
+    // 1. HTTP REST API 전용 (JwtAuthenticationFilter에서 사용)
+    // -------------------------------------------------------------
     public Authentication getAuthentication(final String token){
         // 1. 토큰 내부의 클레임(Claims) 추출
         Claims claims = parseToken(token);
@@ -163,27 +182,25 @@ public class JwtProvider {
                 .map(SimpleGrantedAuthority::new)
                 .toList();
 
-        // 4. Principal 자리에 넣을 유저 식별자(ID)
-        final String id = claims.getSubject();
-        final Long memberNo = claims.get("memberNo",Long.class);
-        final String name = claims.get("name",String.class);
+        // 4.
+        AuthMemberInfo authMemberInfo = extractAuthMemberInfo(claims);
 
-        // 5. 시큐리티 표준 인증 객체 생성 (비밀번호는 이미 토큰 검증이 끝나서 안 담아도 되므로 null 처리)
+        // 4. 시큐리티 표준 인증 객체 생성 (비밀번호는 이미 토큰 검증이 끝나서 안 담아도 되므로 null 처리)
         // 세 번째 인자인 authorities까지 반드시 넘겨줘야 시큐리티가 인증 완료 상태로 판단
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(id, null, roles);
-
-        //
-        AuthMemberInfo authMemberInfo = AuthMemberInfo.builder()
-                        .memberNo(memberNo)
-                        .id(id)
-                        .name(name)
-                        .build();
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(authMemberInfo.getId(), null, roles);
 
         authenticationToken.setDetails(authMemberInfo);
         return authenticationToken;
     }
 
-
+    // -------------------------------------------------------------
+    // 2. STOMP 웹소켓 전용 (AuthenticationChannelInterceptor에서 사용)
+    // -------------------------------------------------------------
+    public Principal getPrincipal(final String token) {
+        Claims claims = parseToken(token);
+        AuthMemberInfo authMemberInfo = extractAuthMemberInfo(claims);
+        return new UserPrincipal(authMemberInfo);
+    }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
@@ -199,7 +216,7 @@ public class JwtProvider {
                     .getPayload()
                     ;
         } catch (io.jsonwebtoken.security.SecurityException | io.jsonwebtoken.MalformedJwtException e) {
-            log.error("잘못된 JWT 서명 또는 손상된 토큰입니다.");
+            log.error("잘못된 JWT 서명 또는 손상된 토큰[{}]입니다.",token);
             throw new InvalidTokenException(ErrorCode.T00);
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
             log.error("만료된 JWT 토큰입니다. (Expired)");
