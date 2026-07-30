@@ -243,17 +243,17 @@ public class ChatService implements ChatUseCase {
 
     @Override
     @Transactional
-    public ChatMessageSendResDto createChatMessage(Long chatRoomNo, ChatMessageSendReqDto payload) {
+    public ChatMessageSendResDto createChatMessage(Long chatRoomNo,Long senderMemberNo, ChatMessageSendReqDto payload) {
         // 이게 왜 필요할까? 상대방에게 메시지 전송 알리기 위해 필요하다.
         // 여러명 있는 경우도 커버하도록 수정
         ChatRoom selectedChatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
                 .orElseThrow(() -> new NotFoundChatRoomException(ErrorCode.Z000));
 
-        List<Long> receiverMembersNo = selectedChatRoom.getReceiverMemberNos(payload.getSenderMemberNo());
+        List<Long> receiverMembersNo = selectedChatRoom.getReceiverMemberNos(senderMemberNo);
 
         ChatMessage chatMessage = ChatMessage.createChatMessage(
                 chatRoomNo,
-                payload.getSenderMemberNo(),
+                senderMemberNo,
                 payload.getContent(),
                 payload.getMessageType()
         );

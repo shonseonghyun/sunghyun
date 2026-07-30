@@ -51,7 +51,6 @@ public class ChatController {
 
         return GlobalResponse.of(ErrorCode.S000, result);
     }
-
     @GetMapping("/my/chat/rooms")
     public GlobalResponse getMyChatRooms(@AuthMember AuthMemberInfo authMemberInfo){
         List<ChatRoomResDto> result = chatUseCase.getMyChatRooms(authMemberInfo.getMemberNo());
@@ -60,9 +59,10 @@ public class ChatController {
 
     @MessageMapping("/chat/room/{chatRoomNo}/send") // 서버는 해당 경로에 발행한 메시지를 수신한다.
 //    @SendTo("/sub/chat/room/{chatRoomNo}") // 서버는 해당 경로를 구독한 클라이언트에게 메시지를 응답한다.
-    public void handleMessage(@DestinationVariable Long chatRoomNo, @Payload ChatMessageSendReqDto payload) {
+    public void handleMessage(@DestinationVariable Long chatRoomNo, @Payload ChatMessageSendReqDto payload, @AuthMember AuthMemberInfo authMemberInfo) {
         // 채팅 메시지 보내는 경우, 누가 보냈는지 dto 내부에 memberNo 필드가 있어 chatParticipantNo를 통해 업데이트 업데이트 가능하다.
         // 대신, 삳대방이 채팅방 메시지에 들어와 해당 메시지를 바로 확인했는지 안했는지는 어떻게 알 수 있을까?
-        chatUseCase.createChatMessage(chatRoomNo,payload);
+        Long senderMemberNo = authMemberInfo.getMemberNo();
+        chatUseCase.createChatMessage(chatRoomNo,senderMemberNo,payload);
     }
 }
