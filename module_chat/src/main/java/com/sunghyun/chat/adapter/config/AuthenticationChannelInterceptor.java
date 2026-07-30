@@ -1,7 +1,6 @@
 package com.sunghyun.chat.adapter.config;
 
 import com.sunghyun.config.JwtProvider;
-import com.sunghyun.dto.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -23,9 +22,9 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        log.info("AuthenticationChannelInterceptor.preSend");
-
         StompHeaderAccessor headerAccessor = getHeaderAccessor(message);
+        log.info("STOMP [{}]",headerAccessor.getCommand());
+
         validateToken(headerAccessor);
 
         return message;
@@ -57,7 +56,7 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
             String accessToken = getAccessToken(headerAccessor);
 
             // 토큰 검증
-            jwtProvider.validate(accessToken+"s");
+            jwtProvider.validate(accessToken);
 
             // Principal 획득 후 STOMP 세션에 유저 등록
             Principal principal = jwtProvider.getPrincipal(accessToken);
@@ -67,7 +66,7 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
         }
 
         else{
-            log.info("STOMP CONNECT 외엔 웹소켓 유저 인증 패스");
+            log.info("STOMP CONNECT 외엔 웹소켓 유저 인증 패스 [{}]",headerAccessor.getCommand());
         }
 
         // SEND, SUBSCRIBE 등 다른 프레임은 CONNECT 때 등록된 세션 유저를 스프링이 자동으로 유지해 줍니다.
