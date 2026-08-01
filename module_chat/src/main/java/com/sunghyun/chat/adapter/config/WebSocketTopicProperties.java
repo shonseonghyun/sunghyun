@@ -13,6 +13,7 @@ public class WebSocketTopicProperties {
 
     private String roomPrefix;   // yml에서 주입받음 (기본값 없음)
     private String memberPrefix; // yml에서 주입받음 (기본값 없음)
+    private String errorPrefix; // yml에서 주입받음 (기본값 없음) (/queue/errors)
 
     public String getRoomTopic(Long chatRoomNo) {
         return roomPrefix + "/" + chatRoomNo;
@@ -20,5 +21,9 @@ public class WebSocketTopicProperties {
 
     public String getMemberTopic(Long memberNo) {
         return memberPrefix + "/" + memberNo;
+    }
+
+    public String getErrorTopic() {
+        return errorPrefix;
     }
 }

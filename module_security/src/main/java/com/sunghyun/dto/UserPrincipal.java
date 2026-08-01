@@ -12,7 +12,7 @@ public class UserPrincipal implements Principal {
 
     @Override
     public String getName() {
-        return authMemberInfo.getName();
+        return String.valueOf(authMemberInfo.getMemberNo());
     }
 
     public AuthMemberInfo getAuthMemberInfo() {
