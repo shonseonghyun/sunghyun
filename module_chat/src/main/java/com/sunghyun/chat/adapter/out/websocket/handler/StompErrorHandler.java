@@ -29,8 +29,10 @@ public class StompErrorHandler extends StompSubProtocolErrorHandler {
     @Override
     public Message<byte[]> handleClientMessageProcessingError(Message<byte[]> clientMessage, Throwable ex) {
         // 1. 인터셉터에서 던진 예외 원인 추출
-        ErrorCode errorCode ;
+        ErrorCode errorCode;
         Throwable cause = ex.getCause();
+
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.ERROR);
 
         // 2. 개발자가 정의한 BaseException인지 확인
         if (cause instanceof BaseException baseException) {
@@ -41,33 +43,30 @@ public class StompErrorHandler extends StompSubProtocolErrorHandler {
         }
 
         // 3. 커스텀 에러 메시지 프레임 생성 후 반환
-        return prepareGlobalResponse(errorCode);
-    }
-
-    private Message<byte[]> prepareGlobalResponse(ErrorCode errorCode) {
-        try{
-            // 1. 공통 응답 포맷(GlobalResponse) 생성 및 JSON 변환
-            GlobalResponse response = GlobalResponse.of(errorCode);
-            String jsonPayload = om.writeValueAsString(response);
-
-            // 2. STOMP ERROR 프레임 헤더 생성
-            StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.ERROR);
-
-            // STOMP 표준 헤더인 'message'에 에러 메시지 세팅 (선택사항)
-//            accessor.setMessage(errorCode.getMessage());
-//            accessor.setLeaveMutable(true);
-
-            // 3. Body(Payload)에 JSON 데이터를 실어서 메시지 객체 생성
-            return MessageBuilder.createMessage(
-                    jsonPayload.getBytes(StandardCharsets.UTF_8),
-                    accessor.getMessageHeaders()
-            );
-        }catch (Exception e){
-            log.error("웹소켓 에러 응답 직렬화 실패", e);
+        try {
+            return prepareGlobalResponse(errorCode, accessor);
+        } catch (Exception e) {
+            log.error("에러 프레임 생성 중 예기치 못한 예외 발생: ", e);
             return MessageBuilder.createMessage(
                     new byte[0],
-                    StompHeaderAccessor.create(StompCommand.ERROR).getMessageHeaders()
+                    accessor.getMessageHeaders()
             );
         }
+    }
+
+    private Message<byte[]> prepareGlobalResponse(ErrorCode errorCode,StompHeaderAccessor accessor) throws Exception {
+        // 1. 공통 응답 포맷(GlobalResponse) 생성 및 JSON 변환
+        GlobalResponse response = GlobalResponse.of(errorCode);
+        String jsonPayload = om.writeValueAsString(response);
+
+        // STOMP 표준 헤더인 'message'에 에러 메시지 세팅 (선택사항)
+        accessor.setMessage(errorCode.getMessage());
+        accessor.setLeaveMutable(true);
+
+        // 3. Body(Payload)에 JSON 데이터를 실어서 메시지 객체 생성
+        return MessageBuilder.createMessage(
+                jsonPayload.getBytes(StandardCharsets.UTF_8),
+                accessor.getMessageHeaders()
+        );
     }
 }
