@@ -1,6 +1,8 @@
 package com.sunghyun.chat.adapter.config;
 
 import com.sunghyun.config.JwtProvider;
+import com.sunghyun.web.ErrorCode;
+import com.sunghyun.web.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -13,6 +15,10 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
 import java.security.Principal;
+
+/**
+ * STOMP 프레임 처리 시 선,후처리 핸들링하는 인터셉터
+ */
 
 @Slf4j
 @Component
@@ -51,8 +57,10 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
             return;
         }
 
+        StompCommand command = headerAccessor.getCommand();
+
         // CONNECT 프레임일 때만 토큰 검증 및 STOMP 세션 유저 등록
-        if (StompCommand.CONNECT.equals(headerAccessor.getCommand())) {
+        if (StompCommand.CONNECT.equals(command)) {
             String accessToken = getAccessToken(headerAccessor);
 
             // 토큰 검증
@@ -64,12 +72,13 @@ public class AuthenticationChannelInterceptor implements ChannelInterceptor {
 
             log.info("STOMP 웹소켓 유저 인증 성공 - Principal: {}", principal.getName());
         }
-
-        else{
-            log.info("STOMP CONNECT 외엔 웹소켓 유저 인증 패스 [{}]",headerAccessor.getCommand());
+        else if(StompCommand.SEND.equals(command) || StompCommand.SUBSCRIBE.equals(command)){
+            if (headerAccessor.getUser() == null) {
+                log.warn("미인증 사용자의 비정상적인 STOMP 요청 감지");
+                throw new BaseException(ErrorCode.T06);
+            }
+            // SEND, SUBSCRIBE 등 다른 요청 프레임은 CONNECT 때 등록된 세션 유저를 스프링이 자동으로 유지해 줍니다.
         }
-
-        // SEND, SUBSCRIBE 등 다른 프레임은 CONNECT 때 등록된 세션 유저를 스프링이 자동으로 유지해 줍니다.
     }
 
 //    private void validateToken(StompHeaderAccessor headerAccessor){
