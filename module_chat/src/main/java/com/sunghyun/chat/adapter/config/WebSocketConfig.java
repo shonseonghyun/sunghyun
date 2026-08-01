@@ -48,6 +48,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // 발행 경로 설정 - 클라이언트가 메시지를 발행할 때 사용할 prefix
         // 클라이언트가 메시지를 보낼 때는 이 prefix로 시작하는 endpoint로 메시지 전송
         registry.setApplicationDestinationPrefixes("/pub");
+
+        registry.setUserDestinationPrefix("/user");
     }
 
     @Override
