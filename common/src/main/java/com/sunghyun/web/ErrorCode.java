@@ -50,7 +50,10 @@ public enum ErrorCode {
 
     // -HttpStatus.OK,-- 채팅 (Z) ---
     Z000(HttpStatus.NOT_FOUND, "존재하지 않는 채팅방입니다."),
-    Z001(HttpStatus.NOT_FOUND, "해당 채팅방에 참여한 회원인지 확인 바랍니다"),
+    Z001(HttpStatus.NOT_FOUND, "해당 채팅방에 참여한 회원인지 확인 바랍니다."),
+    Z002(HttpStatus.BAD_REQUEST, "1:1 채팅방은 최대 2명까지만 참여할 수 있습니다."),
+    Z003(HttpStatus.BAD_REQUEST, "채팅방은 최소 2명 이상 참여자가 존재해야 합니다."),
+    Z004(HttpStatus.BAD_REQUEST, "단체 채팅방은 최소 3명 이상 참여자가 존재해야 합니다."),
 
 
     // -HttpStatus.OK,-- 인증,인가 (T) ---

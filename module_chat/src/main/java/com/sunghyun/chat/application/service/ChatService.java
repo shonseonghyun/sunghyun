@@ -1,11 +1,13 @@
 package com.sunghyun.chat.application.service;
 
 import com.sunghyun.chat.application.dto.req.ChatMessageSendReqDto;
+import com.sunghyun.chat.application.dto.req.ChatRoomCreateReqDto;
 import com.sunghyun.chat.application.dto.res.*;
 import com.sunghyun.chat.application.port.in.ChatUseCase;
 import com.sunghyun.chat.application.port.out.ChatEventPublisherPort;
 import com.sunghyun.chat.application.port.out.dto.ChatEvent;
 import com.sunghyun.chat.domain.dto.UnreadCountMapping;
+import com.sunghyun.chat.domain.exception.ChatException;
 import com.sunghyun.chat.domain.exception.NotFoundChatRoomException;
 import com.sunghyun.chat.domain.message.ChatMessage;
 import com.sunghyun.chat.domain.message.repository.ChatMessageRepository;
@@ -34,15 +36,104 @@ public class ChatService implements ChatUseCase {
     private final ChatEventPublisherPort chatEventPublisherPort;
 
     @Override
-    public ChatRoomCreateResDto getOrCreateChatRoom(Long memberNo, Long friendMemberNo) {
-        return chatRoomRepository.findChatRoomByMemberNosAndChatRoomType(memberNo, friendMemberNo, ChatRoomType.PRIVATE)
-                .map(existingChatRoom -> new ChatRoomCreateResDto(existingChatRoom.getChatRoomNo()))
+    public ChatRoomCreateResDto getOrCreateChatRoom(Long memberNo, ChatRoomCreateReqDto reqDto) {
+        ChatRoomType roomType = reqDto.getRoomType();
+        List<Long> targetMemberNos = reqDto.getTargetMemberNos();
+
+        // 도메인 모델에 생성 위임
+        ChatRoom newChatRoom = ChatRoom.createChatRoom(roomType,memberNo,targetMemberNos);
+
+        final ChatRoomType realRoomType = newChatRoom.getChatRoomType();
+
+        // 그룹 또는 팀 채팅인 경우
+        if (realRoomType.equals(ChatRoomType.GROUP) || realRoomType.equals(ChatRoomType.TEAM)) {
+            ChatRoom savedChatRoom = chatRoomRepository.save(newChatRoom);
+            return new ChatRoomCreateResDto(savedChatRoom.getChatRoomNo(), roomType);
+        }
+
+        //개인 채팅인 경우
+        Long friendMemberNo = reqDto.getTargetMemberNos().get(0);
+        return chatRoomRepository.findChatRoomByMemberNosAndChatRoomType(memberNo, friendMemberNo, roomType)
+                // 채팅방이 존재하는 경우
+                .map(existingChatRoom -> new ChatRoomCreateResDto(existingChatRoom.getChatRoomNo(),roomType))
                 .orElseGet(() -> {
                     // 기존 방이 없을 때만 새 방 생성 및 저장
-                    ChatRoom newChatRoom = ChatRoom.createChatRoom(memberNo, friendMemberNo);
                     ChatRoom savedChatRoom = chatRoomRepository.save(newChatRoom);
-                    return new ChatRoomCreateResDto(savedChatRoom.getChatRoomNo());
+                    return new ChatRoomCreateResDto(savedChatRoom.getChatRoomNo(),roomType);
                 });
+    }
+
+    @Override
+    public List<ChatRoomResDto> getMyChatRooms(Long memberNo) {
+        //1:1 채팅방이면, 상대방이 나간 경우, 가장 마지막 메시지를 보여주고, "??님이 채팅방을 나갔습니다." 보여주기
+        //단체 채팅방이면 회원 수와 상대방 명들, 가장 마지막 메시지 보여주고, 회원이 나갈 경우 "??님이 채팅방을 나갔습니다." 보여주기
+        //팀 단체방이면, 팀명과 회원 수, 가장 마지막 메시지 보여주고, 회원 나갈 경우 "??님이 채팅방을 나갔습니다." 보여주기
+
+        // 채팅방 들간 순서 정렬은 최신 메시지 순으로 정렬한다.
+
+        //1. 우선, 회원이 참여한 모든 채팅방을 추출한다.
+        List<ChatRoom> chatRoomList = chatRoomRepository.findChatRoomsByMemberNo(memberNo);
+
+        //2. 참여한 채팅방이 존재하지 않으면 바로 return한다.
+        if(chatRoomList.isEmpty()){
+            return Collections.emptyList();
+        }
+
+        //3. 각 방 별로 마지막 메시지를 추출한다.
+        List<Long> roomNoList = chatRoomList.stream()
+                .map(ChatRoom::getChatRoomNo)
+                .toList();
+
+        // 각 방 별 마지막 메시지(도메인) 담은 map
+        Map<Long,ChatMessage> lastChatMessageMap = chatMessageRepository.findLatestMessagesByRoomNos(roomNoList)
+                .stream()
+                .collect(Collectors.toMap(
+                                ChatMessage::getChatRoomNo,
+                                chatMessage -> chatMessage
+                        )
+                );
+
+        //4. 각 방 별 안 읽은 메시지 개수를 담은 map
+        Map<Long,Integer> unreadCountMap = chatRoomRepository.findUnreadCountsByMemberNoAndRoomNos(memberNo, roomNoList)
+                .stream()
+                .collect(Collectors.toMap(
+                        UnreadCountMapping::getChatRoomNo,
+                        UnreadCountMapping::getUnreadCount
+                ));
+
+        return chatRoomList.stream()
+                .map(chatRoom -> {
+                    Long chatRoomNo = chatRoom.getChatRoomNo();
+                    ChatMessage lastChatMessage = lastChatMessageMap.get(chatRoomNo);
+
+                    // 마지막 메시지가 있는 경우 DTO 생성
+                    LastMessageInfoResDto lastMessageInfo = (lastChatMessage != null)
+                            ? new LastMessageInfoResDto(
+                            lastChatMessage.getContent(),
+                            lastChatMessage.getMessageType(),
+                            lastChatMessage.getSendDt(),
+                            lastChatMessage.getSendTm())
+                            : null;
+
+                    return ChatRoomResDto.builder()
+                            .chatRoomNo(chatRoomNo)
+                            .chatRoomType(chatRoom.getChatRoomType())
+                            .friendMembersNo(chatRoom.getReceiverMemberNos(memberNo))
+                            .participantCount(chatRoom.getParticipantCount())
+                            .lastMessageInfo(lastMessageInfo)
+                            .unreadCount(unreadCountMap.getOrDefault(chatRoomNo, 0))
+                            .build();
+                })
+                .sorted((a, b) -> { // 주석의 요구사항 반영: 최신 메시지 날짜/시간 내림차순 정렬
+                    if (a.getLastMessageInfo() == null) return 1;  // 메시지 없는 방은 뒤로
+                    if (b.getLastMessageInfo() == null) return -1;
+
+                    String dateTimeA = a.getLastMessageInfo().getSendDt() + a.getLastMessageInfo().getSendTm();
+                    String dateTimeB = b.getLastMessageInfo().getSendDt() + b.getLastMessageInfo().getSendTm();
+
+                    return dateTimeB.compareTo(dateTimeA); // 최신순(내림차순)
+                })
+                .toList();
     }
 
     @Override
@@ -169,83 +260,15 @@ public class ChatService implements ChatUseCase {
 //    }
 
     @Override
-    public List<ChatRoomResDto> getMyChatRooms(Long memberNo) {
-        //1:1 채팅방이면, 상대방이 나간 경우, 가장 마지막 메시지를 보여주고, "??님이 채팅방을 나갔습니다." 보여주기
-        //단체 채팅방이면 회원 수와 상대방 명들, 가장 마지막 메시지 보여주고, 회원이 나갈 경우 "??님이 채팅방을 나갔습니다." 보여주기
-        //팀 단체방이면, 팀명과 회원 수, 가장 마지막 메시지 보여주고, 회원 나갈 경우 "??님이 채팅방을 나갔습니다." 보여주기
-
-        // 채팅방 들간 순서 정렬은 최신 메시지 순으로 정렬한다.
-
-        //1. 우선, 회원이 참여한 모든 채팅방을 추출한다.
-        List<ChatRoom> chatRoomList = chatRoomRepository.findChatRoomsByMemberNo(memberNo);
-
-        //2. 참여한 채팅방이 존재하지 않으면 바로 return한다.
-        if(chatRoomList.isEmpty()){
-            return Collections.emptyList();
-        }
-
-        //3. 각 방 별로 마지막 메시지를 추출한다.
-        List<Long> roomNoList = chatRoomList.stream()
-                .map(ChatRoom::getChatRoomNo)
-                .toList();
-
-        // 각 방 별 마지막 메시지(도메인) 담은 map
-        Map<Long,ChatMessage> lastChatMessageMap = chatMessageRepository.findLatestMessagesByRoomNos(roomNoList)
-                .stream()
-                .collect(Collectors.toMap(
-                        ChatMessage::getChatRoomNo,
-                        chatMessage -> chatMessage
-                        )
-                );
-
-        //4. 각 방 별 안 읽은 메시지 개수를 담은 map
-        Map<Long,Integer> unreadCountMap = chatRoomRepository.findUnreadCountsByMemberNoAndRoomNos(memberNo, roomNoList)
-                .stream()
-                .collect(Collectors.toMap(
-                        UnreadCountMapping::getChatRoomNo,
-                        UnreadCountMapping::getUnreadCount
-                ));
-
-        return chatRoomList.stream()
-                .map(chatRoom -> {
-                    Long chatRoomNo = chatRoom.getChatRoomNo();
-                    ChatMessage lastChatMessage = lastChatMessageMap.get(chatRoomNo);
-
-                    // 마지막 메시지가 있는 경우 DTO 생성
-                    LastMessageInfoResDto lastMessageInfo = (lastChatMessage != null)
-                            ? new LastMessageInfoResDto(
-                            lastChatMessage.getContent(),
-                            lastChatMessage.getMessageType(),
-                            lastChatMessage.getSendDt(),
-                            lastChatMessage.getSendTm())
-                            : null;
-
-                    return ChatRoomResDto.builder()
-                            .chatRoomNo(chatRoomNo)
-                            .chatRoomType(chatRoom.getChatRoomType())
-                            .friendMembersNo(chatRoom.getReceiverMemberNos(memberNo))
-                            .participantCount(chatRoom.getParticipantCount())
-                            .lastMessageInfo(lastMessageInfo)
-                            .unreadCount(unreadCountMap.getOrDefault(chatRoomNo, 0))
-                            .build();
-                })
-                .sorted((a, b) -> { // 주석의 요구사항 반영: 최신 메시지 날짜/시간 내림차순 정렬
-                    if (a.getLastMessageInfo() == null) return 1;  // 메시지 없는 방은 뒤로
-                    if (b.getLastMessageInfo() == null) return -1;
-
-                    String dateTimeA = a.getLastMessageInfo().getSendDt() + a.getLastMessageInfo().getSendTm();
-                    String dateTimeB = b.getLastMessageInfo().getSendDt() + b.getLastMessageInfo().getSendTm();
-
-                    return dateTimeB.compareTo(dateTimeA); // 최신순(내림차순)
-                })
-                .toList();
-    }
-
-    @Override
     @Transactional
     public ChatMessageSendResDto createChatMessage(Long chatRoomNo,Long senderMemberNo, ChatMessageSendReqDto payload) {
         // 이게 왜 필요할까? 상대방에게 메시지 전송 알리기 위해 필요하다.
         // 여러명 있는 경우도 커버하도록 수정
+
+        if(payload.getContent().equals("에러1")){
+            throw new ChatException(ErrorCode.F000);
+        }
+
         ChatRoom selectedChatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
                 .orElseThrow(() -> new NotFoundChatRoomException(ErrorCode.Z000));
 
