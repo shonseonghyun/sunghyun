@@ -2,7 +2,7 @@ package com.sunghyun.chat.adapter.out.websocket;
 
 import com.sunghyun.chat.adapter.config.WebSocketTopicProperties;
 import com.sunghyun.chat.application.dto.enums.ChatEventType;
-import com.sunghyun.chat.application.dto.res.ChatRoomCreateResDto;
+import com.sunghyun.chat.application.dto.res.ChatRoomNoResDto;
 import com.sunghyun.chat.application.dto.res.WebSocketResDto;
 import com.sunghyun.chat.application.port.out.dto.ChatEvent;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ public class WebSocketChatEventListener {
             for (Long receiverMemberNo : receiverMembersNo) {
                 messagingTemplate.convertAndSend(
                         topicProperties.getMemberTopic(receiverMemberNo),
-                        WebSocketResDto.of(eventType, new ChatRoomCreateResDto(event.chatRoomNo()))
+                        WebSocketResDto.of(eventType, new ChatRoomNoResDto(event.chatRoomNo()))
                 );
             }
         }
