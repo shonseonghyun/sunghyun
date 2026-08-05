@@ -8,6 +8,12 @@ dependencies {
     //web socket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
+    //rabbitMQ
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
+    /* Reactor Netty */
+    implementation "org.springframework.boot:spring-boot-starter-reactor-netty" // RabbitMQ에서 브로커 연결 및 통신 설정을 위해 기본으로 사용
+
     //DB
     runtimeOnly 'com.mysql:mysql-connector-j'
     testRuntimeOnly 'com.h2database:h2'
