@@ -37,6 +37,14 @@ public class ChatService implements ChatUseCase {
     private final ChatEventPublisherPort chatEventPublisherPort;
 
     @Override
+    public ChatRoomSelectResDto getChatRoom(Long chatRoomNo, Long memberNo) {
+        ChatRoom selectedChatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
+                .orElseThrow(()->new NotFoundChatRoomException(ErrorCode.Z000));
+
+        return ChatRoomSelectResDto.fromDomain(selectedChatRoom);
+    }
+
+    @Override
     public ChatRoomCreateResDto getOrCreateChatRoom(Long memberNo, ChatRoomCreateReqDto reqDto) {
         // 아예 처음 이면, 새로 생성
         // 있던 방인데 나간거면. 이전 대화 기록과 함께 다시 가져오고, 채팅방 입장시키키

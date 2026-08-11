@@ -5,10 +5,7 @@ import com.sunghyun.chat.application.dto.req.ChatMessageSendReqDto;
 import com.sunghyun.chat.application.dto.req.ChatReadReqDto;
 import com.sunghyun.chat.application.dto.req.ChatRoomCreateReqDto;
 import com.sunghyun.chat.application.dto.req.ChatRoomInviteReqDto;
-import com.sunghyun.chat.application.dto.res.ChatMessageListResDto;
-import com.sunghyun.chat.application.dto.res.ChatReadResDto;
-import com.sunghyun.chat.application.dto.res.ChatRoomCreateResDto;
-import com.sunghyun.chat.application.dto.res.ChatRoomResDto;
+import com.sunghyun.chat.application.dto.res.*;
 import com.sunghyun.chat.application.port.in.ChatUseCase;
 import com.sunghyun.dto.AuthMemberInfo;
 import com.sunghyun.web.ErrorCode;
@@ -28,10 +25,17 @@ import java.util.List;
 public class ChatController {
     private final ChatUseCase chatUseCase;
 
+    @GetMapping("/chat/room/{chatRoomNo}")
+    public GlobalResponse getChatRoom(@PathVariable Long chatRoomNo, @AuthMember AuthMemberInfo authMemberInfo){
+        Long memberNo = authMemberInfo.getMemberNo();
+        ChatRoomSelectResDto result = chatUseCase.getChatRoom(chatRoomNo,memberNo);
+        return GlobalResponse.of(ErrorCode.S000,result);
+    }
+
     @PostMapping("/chat/room")
         public GlobalResponse getOrCreateChatRoom(@RequestBody ChatRoomCreateReqDto reqDto, @AuthMember AuthMemberInfo authMemberInfo){
-        Long myMemberNo = authMemberInfo.getMemberNo();
-        ChatRoomCreateResDto result = chatUseCase.getOrCreateChatRoom(myMemberNo,reqDto);
+        Long memberNo = authMemberInfo.getMemberNo();
+        ChatRoomCreateResDto result = chatUseCase.getOrCreateChatRoom(memberNo,reqDto);
         return GlobalResponse.of(ErrorCode.S000,result);
     }
 
