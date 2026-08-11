@@ -9,5 +9,5 @@ import java.util.List;
 @AllArgsConstructor
 public class ChatMessageListResDto {
     private List<ChatMessageResDto> messages;
-    private List<ChatParticipantResDto> participants;
+    private List<ChatParticipantLastReadResDto> participants;
 }

@@ -9,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface SpringJpaChatMessageRepository extends JpaRepository<ChatMessageEntity,Long> {
+    boolean existsByChatRoomNo(Long chatRoomNo);
+
     @Query(value =
             "SELECT m.* FROM chat_message m " +
                     "WHERE m.chat_message_no IN (" +

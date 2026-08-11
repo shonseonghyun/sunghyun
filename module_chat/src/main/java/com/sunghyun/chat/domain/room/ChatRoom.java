@@ -26,6 +26,20 @@ public class ChatRoom {
 
     private String createdTm;
 
+    public static ChatRoom createPrivateChatRoom(Long memberNo, Long targetMemberNo) {
+        List<ChatParticipant> chatParticipants = new ArrayList<>();
+        chatParticipants.add(ChatParticipant.createChatParticipant(memberNo));
+        chatParticipants.add(ChatParticipant.createChatParticipant(targetMemberNo));
+
+        return ChatRoom.builder()
+                .chatRoomType(ChatRoomType.PRIVATE)
+                .chatParticipants(chatParticipants)
+                .createdDt(ApiUtils.getCurrentDt())
+                .createdTm(ApiUtils.getCurrentTm())
+                .build()
+                ;
+    }
+
     public static ChatRoom createChatRoom(ChatRoomType roomType, Long memberNo, List<Long> targetMemberNos) {
         // ChatParticipant List로 만드는 로직 도메인 메소드로 빼야하나?
         // + 뺐다.
@@ -114,23 +128,117 @@ public class ChatRoom {
 //    }
 
     public List<Long> getReceiverMemberNos(Long senderMemberNo) {
-        //보낸 사람이 해당 방의 실제 참여자인지 나간 참여자 아닌지 확인
-        boolean isSenderActive = this.chatParticipants.stream()
-                .anyMatch(p -> p.getMemberNo().equals(senderMemberNo) && !p.isLeft());
+        // 나를 제외한 회원번호 가져오기
 
-        if (!isSenderActive) {
-            throw new NotFoundChatParticipantException(ErrorCode.Z001); // 💡 예: 참여자가 아니거나 퇴장한 경우
+        //보낸 사람이 해당 방의 실제 참여자인지 나간 참여자 아닌지 확인
+//        boolean isSenderActive = this.chatParticipants.stream()
+//                .anyMatch(p -> p.getMemberNo().equals(senderMemberNo) && !p.isLeft());
+//
+//        if (!isSenderActive) {
+//            throw new NotFoundChatParticipantException(ErrorCode.Z001); // 💡 예: 참여자가 아니거나 퇴장한 경우
+//        }
+
+        // 개인 채팅방은 상대방이 나가도 그대로 회원번호 및 이름 응답
+        // 단체(팀,그룹) 채팅방은 상대방이 나가면 '알수없음'으로 응답
+        if(this.chatRoomType == ChatRoomType.PRIVATE){
+            return this.chatParticipants.stream()
+                    .map(ChatParticipant::getMemberNo)
+                    .toList();
         }
 
-        // 2. 보낸 이 제외 + 안 나간 사람들의 ID만 추출
-        return this.chatParticipants.stream()
-                .filter(p -> !p.isLeft())
-                .filter(p -> !p.getMemberNo().equals(senderMemberNo))
-                .map(ChatParticipant::getMemberNo)
-                .toList();
+        else {
+            return this.chatParticipants.stream()
+                    .filter(p -> !p.isLeft())
+                    .filter(p -> !p.getMemberNo().equals(senderMemberNo))
+                    .map(ChatParticipant::getMemberNo)
+                    .toList();
+        }
+
     }
 
     public Integer getParticipantCount() {
-        return chatParticipants.size();
+        // 개인 채팅방은 1
+        // 단체(팀,그룹) 채팅방은 상대방이 나가면 그만큼 빼고 응답
+
+        //떠나지 않은 사람만
+        return chatParticipants.stream()
+                .filter(p-> !p.isLeft())
+                .toList().size()
+                ;
+
     }
+
+
+    public void enteredMember(Long targetMemberNo) {
+        ChatParticipant targetChatParticipant = this.chatParticipants.stream()
+                .filter(p->p.getMemberNo().equals(targetMemberNo))
+                .findFirst()
+                .orElseThrow(()->new NotFoundChatParticipantException(ErrorCode.Z001))
+                ;
+
+        //채팅방 들어가기
+        targetChatParticipant.enter();
+    }
+
+    public void leaveMember(Long targetMemberNo) {
+        //채팅방 나가는 대상 회원
+        ChatParticipant targetChatParticipant = this.chatParticipants.stream()
+                .filter(p->p.getMemberNo().equals(targetMemberNo))
+                .findFirst()
+                .orElseThrow(()->new NotFoundChatParticipantException(ErrorCode.Z001))
+                ;
+
+        //채팅방 대상 나가기
+        targetChatParticipant.leave();
+    }
+
+    public boolean isMemberLeft(Long memberNo) {
+        return this.chatParticipants
+                .stream()
+                .filter(p->p.getMemberNo().equals(memberNo))
+                .findFirst()
+                .map(ChatParticipant::isLeft)
+                .orElse(true) // 참여자가 아예 없거나 찾을 수 없으면 나간 걸로 간주
+                ;
+    }
+
+    public void inviteMember(List<Long> targetMemberNos) {
+        if (targetMemberNos == null || targetMemberNos.isEmpty()) return;
+
+        for (Long targetMemberNo : targetMemberNos) {
+            ChatParticipant existingParticipant = this.chatParticipants.stream()
+                    .filter(p -> p.getMemberNo().equals(targetMemberNo))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingParticipant != null) {
+                // 이미 방에 있었던 사람이면 재참가 처리
+                existingParticipant.enter();
+            } else {
+                // 아예 새로운 사람이면 추가
+                this.chatParticipants.add(ChatParticipant.createChatParticipant(targetMemberNo));
+            }
+        }
+    }
+
+    public void handleNewMessage() {
+        // 💡 개인 채팅방(PRIVATE)일 때만, 나갔던 상대방의 상태를 다시 활성화(reenter) 시킴
+        if (this.chatRoomType == ChatRoomType.PRIVATE) {
+            this.chatParticipants.forEach(participant -> {
+                if (participant.isLeft()) {
+                    participant.reEnter();
+                }
+            });
+        }
+    }
+
+    public boolean isPrivateRoom() {
+        return this.chatRoomType == ChatRoomType.PRIVATE;
+    }
+
+    public boolean isGroupRoom() {
+        return this.chatRoomType == ChatRoomType.GROUP;
+    }
+
+
 }

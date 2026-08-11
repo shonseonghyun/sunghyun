@@ -20,4 +20,14 @@ public class SpringChatEventPublisherAdapter implements ChatEventPublisherPort {
     public void publishReadMessageUpdated(ChatEvent.MessageRead event) {
         eventPublisher.publishEvent(event);
     }
+
+    @Override
+    public void publishLeavedChatRoom(ChatEvent.ChatRoomLeaved event) {
+        eventPublisher.publishEvent(event);
+    }
+
+    @Override
+    public void publishInvitedChatRoom(ChatEvent.ChatRoomInvited event) {
+        eventPublisher.publishEvent(event);
+    }
 }

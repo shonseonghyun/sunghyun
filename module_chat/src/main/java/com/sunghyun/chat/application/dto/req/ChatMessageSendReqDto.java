@@ -5,7 +5,6 @@ import lombok.Getter;
 
 @Getter
 public class ChatMessageSendReqDto {
-    private String senderName;
     private ChatMessageType messageType;
     private String content;
 }

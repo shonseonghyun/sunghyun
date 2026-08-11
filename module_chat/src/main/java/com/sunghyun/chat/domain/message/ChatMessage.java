@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @Builder
 @AllArgsConstructor
@@ -40,12 +42,25 @@ public class ChatMessage {
     }
 
     // 시스템 퇴장 메시지 생성 팩토리 메서드 ("~님이 대화를 떠났습니다")
-    public static ChatMessage createLeaveMessage(Long chatRoomNo, Long senderNo, String senderName) {
+    public static ChatMessage createLeaveMessage(Long chatRoomNo, Long leavedMemberNo) {
         return ChatMessage.builder()
                 .chatRoomNo(chatRoomNo)
-                .senderMemberNo(senderNo)
-                .content(senderName + "님이 대화를 떠났습니다.")
+                .senderMemberNo(leavedMemberNo)
+                .content("회원 " + leavedMemberNo + "님이 대화를 떠났습니다.")
                 .messageType(ChatMessageType.LEAVE)
+                .sendDt(ApiUtils.getCurrentDt())
+                .sendTm(ApiUtils.getCurrentTm())
+                .build();
+    }
+
+    public static ChatMessage createInviteMessage(Long chatRoomNo, Long inviteMemberNo, List<Long> invitedMemberNos) {
+        String invitedMembersStr = String.join(", ", invitedMemberNos.stream().map(String::valueOf).toList());
+
+        return ChatMessage.builder()
+                .chatRoomNo(chatRoomNo)
+                .senderMemberNo(inviteMemberNo)
+                .content("회원 " + inviteMemberNo + "님이 회원 " + invitedMembersStr + "님을 초대했습니다.")
+                .messageType(ChatMessageType.INVITE)
                 .sendDt(ApiUtils.getCurrentDt())
                 .sendTm(ApiUtils.getCurrentTm())
                 .build();

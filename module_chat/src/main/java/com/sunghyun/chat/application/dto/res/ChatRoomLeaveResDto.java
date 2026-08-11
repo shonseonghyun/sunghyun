@@ -1,10 +1,15 @@
 package com.sunghyun.chat.application.dto.res;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
 
 @AllArgsConstructor
 @Getter
-public class ChatRoomCreateResDto {
-    private Long chatRoomNo;
+@Builder
+public class ChatRoomLeaveResDto {
+    private List<Long> receiverMembersNo;
+
 }

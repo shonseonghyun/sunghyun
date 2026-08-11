@@ -31,4 +31,16 @@ public class ChatParticipant {
             this.lastReadChatMessageNo = lastReadChatMessageNo;
         }
     }
+
+    public void leave() {
+        this.isLeft = true;
+    }
+
+    public void enter() {
+        this.isLeft = false;
+    }
+
+    public void reEnter() {
+        enter();
+    }
 }

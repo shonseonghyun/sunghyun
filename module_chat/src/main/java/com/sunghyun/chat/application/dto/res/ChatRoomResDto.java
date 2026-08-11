@@ -14,15 +14,14 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ChatRoomResDto {
     private Long chatRoomNo;
-    private ChatRoomType chatRoomType;
 
-    //상대방들 번호
-    private List<Long> friendMembersNo;
+    private ChatRoomType chatRoomType;
 
     //총 인원 수
     private Integer participantCount;
 
-    private Long lastSenderMemberNo; //이게 필요한가? 프론트 확인 필요.
+    // 채팅에 참여한 회원 간단 정보
+    private List<ChatMemberInfo> chatMembers;
 
     private LastMessageInfoResDto lastMessageInfo;
 

@@ -35,4 +35,9 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
                 .toList()
                 ;
     }
+
+    @Override
+    public boolean existsByChatRoomNo(Long chatRoomNo) {
+        return springJpaChatMessageRepository.existsByChatRoomNo(chatRoomNo);
+    }
 }

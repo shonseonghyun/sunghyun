@@ -9,4 +9,5 @@ public interface ChatMessageRepository {
     ChatMessage save(ChatMessage chatMessage);
     List<ChatMessage> findLatestMessagesByRoomNos(List<Long> roomNoList);
     List<ChatMessage> findMessagesByRoomNo(Long chatRoomNo, Long lastMessageNo, Pageable pageable);
+    boolean existsByChatRoomNo(Long chatRoomNo);
 }
