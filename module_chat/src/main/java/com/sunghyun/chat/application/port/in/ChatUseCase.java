@@ -11,7 +11,7 @@ public interface ChatUseCase {
     ChatRoomCreateResDto getOrCreateChatRoom(Long memberNo, ChatRoomCreateReqDto reqDto);
     List<ChatRoomResDto> getMyChatRooms(Long memberNo);
     void createChatMessage(Long chatRoomNo, Long senderMemberNo, ChatMessageSendReqDto reqDto);
-    ChatMessageListResDto getChatMessages(Long chatRoomNo, Long lastMessageNo, int pageSize);
+    ChatMessageListResDto getChatMessages(Long chatRoomNo,Long memberNo, Long lastMessageNo, int pageSize);
     ChatReadResDto readChatMessage(Long chatRoomNo, Long memberNo, Long lastReadChatMessageNo);
     void leaveMember(Long chatRoomNo, Long memberNo);
     ChatRoomCreateResDto inviteMember(Long chatRoomNo, Long memberNo, ChatRoomInviteReqDto reqDto);

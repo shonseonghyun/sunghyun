@@ -40,8 +40,9 @@ public class ChatController {
     }
 
     @GetMapping("/chat/room/{chatRoomNo}/messages")
-    public GlobalResponse getChatMessages(@PathVariable Long chatRoomNo, @RequestParam(required = false) Long lastMessageNo, @RequestParam(defaultValue = "5") int pageSize,@AuthMember AuthMemberInfo authMemberInfo){
-        ChatMessageListResDto result = chatUseCase.getChatMessages(chatRoomNo, lastMessageNo,pageSize);
+    public GlobalResponse getChatMessages(@PathVariable Long chatRoomNo, @RequestParam(required = false) Long lastMessageNo, @RequestParam(defaultValue = "5") int pageSize, @AuthMember AuthMemberInfo authMemberInfo){
+        Long memberNo = authMemberInfo.getMemberNo();
+        ChatMessageListResDto result = chatUseCase.getChatMessages(chatRoomNo, memberNo, lastMessageNo,pageSize);
         return GlobalResponse.of(ErrorCode.S000,result);
     }
 

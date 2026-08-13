@@ -165,20 +165,19 @@ public class ChatRoom {
                 .filter(p-> !p.isLeft())
                 .toList().size()
                 ;
-
     }
 
 
-    public void enteredMember(Long targetMemberNo) {
-        ChatParticipant targetChatParticipant = this.chatParticipants.stream()
-                .filter(p->p.getMemberNo().equals(targetMemberNo))
-                .findFirst()
-                .orElseThrow(()->new NotFoundChatParticipantException(ErrorCode.Z001))
-                ;
-
-        //채팅방 들어가기
-        targetChatParticipant.enter();
-    }
+//    public void enteredMember(Long targetMemberNo) {
+//        ChatParticipant targetChatParticipant = this.chatParticipants.stream()
+//                .filter(p->p.getMemberNo().equals(targetMemberNo))
+//                .findFirst()
+//                .orElseThrow(()->new NotFoundChatParticipantException(ErrorCode.Z001))
+//                ;
+//
+//        //채팅방 들어가기
+//        targetChatParticipant.enter();
+//    }
 
     public void leaveMember(Long targetMemberNo) {
         //채팅방 나가는 대상 회원
@@ -202,7 +201,7 @@ public class ChatRoom {
                 ;
     }
 
-    public void inviteMember(List<Long> targetMemberNos) {
+    public void inviteMember(List<Long> targetMemberNos,Long chatMessageNo) {
         if (targetMemberNos == null || targetMemberNos.isEmpty()) return;
 
         for (Long targetMemberNo : targetMemberNos) {
@@ -211,24 +210,52 @@ public class ChatRoom {
                     .findFirst()
                     .orElse(null);
 
+            //채팅방 한 번이라도 참여했던 사람이라면
             if (existingParticipant != null) {
-                // 이미 방에 있었던 사람이면 재참가 처리
-                existingParticipant.enter();
+                // 나간 사람이였다면
+                if(existingParticipant.isLeft()){
+                    // 재참가 처리 및 최신 메시지 번호 세팅
+                    existingParticipant.enter(chatMessageNo);
+                }
             } else {
                 // 아예 새로운 사람이면 추가
-                this.chatParticipants.add(ChatParticipant.createChatParticipant(targetMemberNo));
+                ChatParticipant newChatParticipant = ChatParticipant.createInvitedParticipant(targetMemberNo,chatMessageNo);
+                this.chatParticipants.add(newChatParticipant);
             }
         }
     }
 
-    public void handleNewMessage() {
-        // 💡 개인 채팅방(PRIVATE)일 때만, 나갔던 상대방의 상태를 다시 활성화(reenter) 시킴
+    public void handleNewMessage(boolean hasMessage, Long chatMessageNo) {
+        // 개인 채팅방(PRIVATE)일 때만, 나갔던 상대방의 상태를 다시 활성화(reenter) 시킴
+        // a.첫 채팅 시작 또는 b.초대된(채팅 시작) 경우, 읽기 시작한 메시지번호 세팅
+
+        // 그룹 채팅방
+        // 첫 채팅 시작 또는 초대된 경우, 읽기 시작한 메시지번호 세팅
+
+        //첫 채팅시작인 경우
+        if (!hasMessage) {
+            initializeFirstMessageForParticipants(chatMessageNo);
+            return;
+        }
+
         if (this.chatRoomType == ChatRoomType.PRIVATE) {
             this.chatParticipants.forEach(participant -> {
+                // 누구든 나간 경우, 재입장시키기
+                // 근데 첫 채팅인데 상대방이 나간 경우는 없다.
                 if (participant.isLeft()) {
-                    participant.reEnter();
+                    participant.reEnter(chatMessageNo);
                 }
             });
+        }
+
+        else if (this.chatRoomType == ChatRoomType.GROUP) {
+            // inviteMember에서 초대 시점 기준으로 최신 메시지 번호 세팅하므로 패스
+        }
+    }
+
+    private void initializeFirstMessageForParticipants(Long chatMessageNo) {
+        for (ChatParticipant participant : this.chatParticipants) {
+            participant.assignFirstViewableMessage(chatMessageNo);
         }
     }
 
@@ -241,4 +268,12 @@ public class ChatRoom {
     }
 
 
+    public Long getFirstViewableChatMessageNoOfMember(Long memberNo) {
+        return this.chatParticipants.stream()
+                .filter(chatParticipant->chatParticipant.getMemberNo().equals(memberNo))
+                .map(ChatParticipant::getFirstViewableChatMessageNo)
+                .findFirst()
+                .orElse(null)
+                ;
+    }
 }

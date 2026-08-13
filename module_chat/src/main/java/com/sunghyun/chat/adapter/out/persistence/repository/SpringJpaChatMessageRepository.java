@@ -21,12 +21,15 @@ public interface SpringJpaChatMessageRepository extends JpaRepository<ChatMessag
                     ")", nativeQuery = true)
     List<ChatMessageEntity> findLatestMessagesByRoomNos(@Param("roomNos") List<Long> roomNos);
 
+    // 💡 firstViewableMessageNo 조건 추가
     @Query("SELECT m FROM ChatMessageEntity m " +
             "WHERE m.chatRoomNo = :chatRoomNo " +
-            "AND (:lastMessageNo IS NULL OR m.chatMessageNo < :lastMessageNo) " +
+            "AND m.chatMessageNo >= :firstViewableMessageNo " + // 내가 볼 수 있는 최초 시점 이상
+            "AND (:lastMessageNo IS NULL OR m.chatMessageNo < :lastMessageNo) " + // 기존 스크롤 페이징 커서
             "ORDER BY m.chatMessageNo DESC")
-    List<ChatMessageEntity> findByChatRoomNoOrderByChatMessageNoDesc(
+    List<ChatMessageEntity> findByChatRoomNoAndFirstViewable(
             @Param("chatRoomNo") Long chatRoomNo,
+            @Param("firstViewableMessageNo") Long firstViewableMessageNo,
             @Param("lastMessageNo") Long lastMessageNo,
             Pageable pageable
     );

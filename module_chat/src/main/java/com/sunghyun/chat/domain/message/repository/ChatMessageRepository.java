@@ -8,6 +8,6 @@ import java.util.List;
 public interface ChatMessageRepository {
     ChatMessage save(ChatMessage chatMessage);
     List<ChatMessage> findLatestMessagesByRoomNos(List<Long> roomNoList);
-    List<ChatMessage> findMessagesByRoomNo(Long chatRoomNo, Long lastMessageNo, Pageable pageable);
+    List<ChatMessage> findMessagesByRoomNo(Long chatRoomNo,Long firstViewableMessageNo, Long lastMessageNo, Pageable pageable);
     boolean existsByChatRoomNo(Long chatRoomNo);
 }

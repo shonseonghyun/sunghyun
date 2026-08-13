@@ -29,8 +29,8 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     }
 
     @Override
-    public List<ChatMessage> findMessagesByRoomNo(Long chatRoomNo, Long lastMessageNo, Pageable pageable) {
-        return springJpaChatMessageRepository.findByChatRoomNoOrderByChatMessageNoDesc(chatRoomNo,lastMessageNo,pageable)
+    public List<ChatMessage> findMessagesByRoomNo(Long chatRoomNo,Long firstViewableChatMessageNo, Long lastMessageNo, Pageable pageable) {
+        return springJpaChatMessageRepository.findByChatRoomNoAndFirstViewable(chatRoomNo,firstViewableChatMessageNo,lastMessageNo,pageable)
                 .stream().map(ChatMessageEntity::toDomain)
                 .toList()
                 ;

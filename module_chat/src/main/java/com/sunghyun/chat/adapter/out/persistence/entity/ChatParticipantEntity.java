@@ -29,6 +29,9 @@ public class ChatParticipantEntity {
     private boolean isLeft;
 
     @Column
+    private Long firstViewableChatMessageNo;
+
+    @Column
     private Long lastReadChatMessageNo;
 
     // Domain -> Entity 변환
@@ -39,6 +42,7 @@ public class ChatParticipantEntity {
                 .chatParticipantNo(domain.getChatParticipantNo())
                 .memberNo(domain.getMemberNo())
                 .isLeft(domain.isLeft())
+                .firstViewableChatMessageNo(domain.getFirstViewableChatMessageNo())
                 .lastReadChatMessageNo(domain.getLastReadChatMessageNo())
                 .build();
     }
@@ -49,6 +53,7 @@ public class ChatParticipantEntity {
                 .chatParticipantNo(this.chatParticipantNo)
                 .memberNo(this.memberNo)
                 .isLeft(this.isLeft)
+                .firstViewableChatMessageNo(this.firstViewableChatMessageNo)
                 .lastReadChatMessageNo(this.lastReadChatMessageNo)
                 .build();
     }

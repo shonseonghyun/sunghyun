@@ -8,7 +8,6 @@ import com.sunghyun.chat.application.port.in.ChatUseCase;
 import com.sunghyun.chat.application.port.out.ChatEventPublisherPort;
 import com.sunghyun.chat.application.port.out.dto.ChatEvent;
 import com.sunghyun.chat.domain.dto.UnreadCountMapping;
-import com.sunghyun.chat.domain.exception.ChatException;
 import com.sunghyun.chat.domain.exception.NotFoundChatRoomException;
 import com.sunghyun.chat.domain.message.ChatMessage;
 import com.sunghyun.chat.domain.message.repository.ChatMessageRepository;
@@ -62,10 +61,11 @@ public class ChatService implements ChatUseCase {
             return new ChatRoomCreateResDto(savedChatRoom.getChatRoomNo());
         }
         else{
-            // 있었던 경우,
-            selectedChatRoom.enteredMember(memberNo);
-            ChatRoom savedChatRoom = chatRoomRepository.save(selectedChatRoom);
-            return new ChatRoomCreateResDto(savedChatRoom.getChatRoomNo());
+            // 있었던 경우, 입장시키기
+            // + 근데 채팅을 쳐야 입장시켜야 할듯? 주석처리하자
+//            selectedChatRoom.enteredMember(memberNo);
+//            ChatRoom savedChatRoom = chatRoomRepository.save(selectedChatRoom);
+            return new ChatRoomCreateResDto(selectedChatRoom.getChatRoomNo());
         }
     }
 
@@ -154,7 +154,7 @@ public class ChatService implements ChatUseCase {
     }
 
     @Override
-    public ChatMessageListResDto getChatMessages(Long chatRoomNo, Long lastMessageNo, int pageSize) {
+    public ChatMessageListResDto getChatMessages(Long chatRoomNo,Long memberNo, Long lastMessageNo, int pageSize) {
         Pageable pageable = PageRequest.of(0, pageSize);
 
         ChatRoom chatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
@@ -164,7 +164,10 @@ public class ChatService implements ChatUseCase {
                 .map(ChatParticipantLastReadResDto::fromDomain)
                 .toList();
 
-        List<ChatMessage> messages = chatMessageRepository.findMessagesByRoomNo(chatRoomNo, lastMessageNo, pageable);
+        Long firstViewableChatMessageNo = chatRoom.getFirstViewableChatMessageNoOfMember(memberNo);
+
+
+        List<ChatMessage> messages = chatMessageRepository.findMessagesByRoomNo(chatRoomNo,firstViewableChatMessageNo ,lastMessageNo, pageable);
 
         // 💡 각 메시지에 senderMemberName과 receiverMembersNo를 채워주도록 수정
         List<ChatMessageResDto> messageDtos = messages.stream()
@@ -242,11 +245,12 @@ public class ChatService implements ChatUseCase {
 
         // 단체방인 경우, 초대
         else if(selectedChatRoom.isGroupRoom()){
-            selectedChatRoom.inviteMember(reqDto.getTargetMemberNos());
-            chatRoomRepository.save(selectedChatRoom);
-
             ChatMessage invitedChatMessage = ChatMessage.createInviteMessage(chatRoomNo,memberNo,selectedChatRoom.getReceiverMemberNos(memberNo));
             ChatMessage savedInvitedChatMessage = chatMessageRepository.save(invitedChatMessage);
+
+            selectedChatRoom.inviteMember(reqDto.getTargetMemberNos(),savedInvitedChatMessage.getChatMessageNo());
+            chatRoomRepository.save(selectedChatRoom);
+
             ChatMessageResDto result = ChatMessageResDto.fromDomain(savedInvitedChatMessage,selectedChatRoom.getReceiverMemberNos(memberNo));
             chatEventPublisherPort.publishInvitedChatRoom(new ChatEvent.ChatRoomInvited(chatRoomNo, result));
         }
@@ -257,9 +261,9 @@ public class ChatService implements ChatUseCase {
     @Override
     @Transactional
     public void createChatMessage(Long chatRoomNo,Long senderMemberNo, ChatMessageSendReqDto payload) {
-        if(payload.getContent().equals("에러1")){
-            throw new ChatException(ErrorCode.F000);
-        }
+//        if(payload.getContent().equals("에러1")){
+//            throw new ChatException(ErrorCode.F000);
+//        }
         // 채팅방 처음 메시지 입력 시,
         // 개인 채팅방은 메시지를 그대로 구독한 클라이언트에게 응답하면 되고,
         // 단체 채팅방은 "초대한 사람a님이 초대받은사람b,초대받은사람c을 초대했습니다." 클라이언트에게 글이 같이 응답되어야 합니다.
@@ -283,14 +287,14 @@ public class ChatService implements ChatUseCase {
             }
         }
 
-        // 공통 처리
-        selectedChatRoom.handleNewMessage();
 
         // 메시지 도메인 생성 후 영속화
         ChatMessage newChatMessage = ChatMessage.createChatMessage(chatRoomNo,senderMemberNo,payload.getContent(),payload.getMessageType());
-        chatRoomRepository.save(selectedChatRoom);
         ChatMessage savedChatMessage = chatMessageRepository.save(newChatMessage);
 
+        // 공통 처리
+        selectedChatRoom.handleNewMessage(hasMessages,savedChatMessage.getChatMessageNo());
+        chatRoomRepository.save(selectedChatRoom);
 
         ChatMessageResDto result = ChatMessageResDto.fromDomain(savedChatMessage, selectedChatRoom.getReceiverMemberNos(senderMemberNo));
         chatEventPublisherPort.publishChatMessageCreated(new ChatEvent.MessageCreated(chatRoomNo, result));
