@@ -45,6 +45,7 @@ public class ChatParticipant {
 
     public void leave() {
         this.isLeft = true;
+        this.firstViewableChatMessageNo=0L;
     }
 
     public void enter(Long chatMessageNo) {

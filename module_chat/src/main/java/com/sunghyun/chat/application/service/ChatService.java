@@ -69,7 +69,6 @@ public class ChatService implements ChatUseCase {
         }
     }
 
-
     @Override
     public List<ChatRoomResDto> getMyChatRooms(Long memberNo) {
         // 1.회원 참여한 모든 채팅방 추출
@@ -155,21 +154,20 @@ public class ChatService implements ChatUseCase {
 
     @Override
     public ChatMessageListResDto getChatMessages(Long chatRoomNo,Long memberNo, Long lastMessageNo, int pageSize) {
-        Pageable pageable = PageRequest.of(0, pageSize);
-
         ChatRoom chatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
                 .orElseThrow(() -> new NotFoundChatRoomException(ErrorCode.Z000));
 
-        List<ChatParticipantLastReadResDto> participants = chatRoom.getChatParticipants().stream()
-                .map(ChatParticipantLastReadResDto::fromDomain)
-                .toList();
+        final Pageable pageable = PageRequest.of(0, pageSize);
+        final Long firstViewableChatMessageNo = chatRoom.getFirstViewableChatMessageNoOfMember(memberNo);
 
-        Long firstViewableChatMessageNo = chatRoom.getFirstViewableChatMessageNoOfMember(memberNo);
+        if(firstViewableChatMessageNo == 0L){
+            // 0L이면 보여줄 게 없다.
+            // 0L 의미=> 1. 생성만 된 채팅방이라 아직 채팅메시지가 없는 경우, 2. 나간 사람인 경우
+            return null;
+        }
 
+        final List<ChatMessage> messages = chatMessageRepository.findMessagesByRoomNo(chatRoomNo,firstViewableChatMessageNo ,lastMessageNo, pageable);
 
-        List<ChatMessage> messages = chatMessageRepository.findMessagesByRoomNo(chatRoomNo,firstViewableChatMessageNo ,lastMessageNo, pageable);
-
-        // 💡 각 메시지에 senderMemberName과 receiverMembersNo를 채워주도록 수정
         List<ChatMessageResDto> messageDtos = messages.stream()
                 .map(message -> {
                     // 예시: chatRoom이나 별도 매퍼를 통해 해당 sender의 이름을 찾아옴
@@ -177,6 +175,10 @@ public class ChatService implements ChatUseCase {
 
                     return ChatMessageResDto.fromDomain(message,receiverMembersNo);
                 })
+                .toList();
+
+        List<ChatParticipantLastReadResDto> participants = chatRoom.getChatParticipants().stream()
+                .map(ChatParticipantLastReadResDto::fromDomain)
                 .toList();
 
         return new ChatMessageListResDto(messageDtos, participants);
@@ -206,25 +208,23 @@ public class ChatService implements ChatUseCase {
     @Transactional
     public void leaveMember(Long chatRoomNo, Long leavedMemberNo) {
         // 채팅 도메인 조회
-        ChatRoom chatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
+        ChatRoom selectedChatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
                 .orElseThrow(()->new NotFoundChatRoomException(ErrorCode.Z000));
 
+
         // 채팅방에서 회원 나가기
-        chatRoom.leaveMember(leavedMemberNo);
+        selectedChatRoom.leaveMember(leavedMemberNo);  //isLeft, 0L
 
-        // 채팅방 메시지
-        ChatMessage chatMessage = ChatMessage.createLeaveMessage(chatRoomNo,leavedMemberNo);
-
-        // 영속화
-        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
-        ChatMessage savedChatMessage = chatMessageRepository.save(chatMessage);
-
-        ChatMessageResDto result = ChatMessageResDto.fromDomain(savedChatMessage, savedChatRoom.getReceiverMemberNos(leavedMemberNo));
-
-        //음.. 단체 채팅방은 누가 나갈 경우, 상대방들에게 나갔다고 알림해야한다.
-        if(chatRoom.getChatRoomType()== ChatRoomType.GROUP){
+        //단체 채팅방은 누가 나갈 경우, 상대방들에게 나갔다고 알림해야한다.
+        if(selectedChatRoom.isGroupRoom()){
+            ChatMessage chatMessage = ChatMessage.createLeaveMessage(chatRoomNo,leavedMemberNo);
+            ChatMessage savedChatMessage = chatMessageRepository.save(chatMessage);
+            ChatMessageResDto result = ChatMessageResDto.fromDomain(savedChatMessage, selectedChatRoom.getReceiverMemberNos(leavedMemberNo));
             chatEventPublisherPort.publishLeavedChatRoom(new ChatEvent.ChatRoomLeaved(chatRoomNo,result));
         }
+
+        // 영속화
+        ChatRoom savedChatRoom = chatRoomRepository.save(selectedChatRoom);
     }
 
     @Override
