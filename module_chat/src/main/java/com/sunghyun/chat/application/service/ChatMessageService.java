@@ -76,22 +76,7 @@ public class ChatMessageService implements ChatMessageUseCase {
         ChatRoom selectedChatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
                 .orElseThrow(() -> new NotFoundChatRoomException(ErrorCode.Z000));
 
-        final List<Long> receiverMemberNos = selectedChatRoom.getReceiverMemberNos(senderMemberNo);
-
         boolean hasMessages = chatMessageRepository.existsByChatRoomNo(chatRoomNo);
-
-        // 그룹 채팅방인 경우
-        if(selectedChatRoom.isGroupRoom()){
-            //첫 채팅방 입력인 경우
-            if(!hasMessages){
-                //초대 구문 저장 및 실시간 전송
-                ChatMessage invitedChatMessage = ChatMessage.createInviteMessage(chatRoomNo,senderMemberNo,receiverMemberNos);
-                ChatMessage savedInvitedChatMessage = chatMessageRepository.save(invitedChatMessage);
-                ChatMessageResDto result = ChatMessageResDto.fromDomain(savedInvitedChatMessage,selectedChatRoom.getReceiverMemberNos(senderMemberNo));
-                chatEventPublisherPort.publishChatMessageCreated(new ChatEvent.MessageCreated(chatRoomNo, result));
-            }
-        }
-
 
         // 메시지 도메인 생성 후 영속화
         ChatMessage newChatMessage = ChatMessage.createChatMessage(chatRoomNo,senderMemberNo,payload.getContent(),payload.getMessageType());

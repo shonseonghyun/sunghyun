@@ -26,6 +26,9 @@ public class ChatParticipantEntity {
     private Long chatRoomNo;
 
     @Column
+    private boolean isDisplayed;
+
+    @Column
     private boolean isLeft;
 
     @Column
@@ -42,6 +45,7 @@ public class ChatParticipantEntity {
                 .chatParticipantNo(domain.getChatParticipantNo())
                 .memberNo(domain.getMemberNo())
                 .isLeft(domain.isLeft())
+                .isDisplayed(domain.isDisplayed())
                 .firstViewableChatMessageNo(domain.getFirstViewableChatMessageNo())
                 .lastReadChatMessageNo(domain.getLastReadChatMessageNo())
                 .build();
@@ -53,6 +57,7 @@ public class ChatParticipantEntity {
                 .chatParticipantNo(this.chatParticipantNo)
                 .memberNo(this.memberNo)
                 .isLeft(this.isLeft)
+                .isDisplayed(this.isDisplayed)
                 .firstViewableChatMessageNo(this.firstViewableChatMessageNo)
                 .lastReadChatMessageNo(this.lastReadChatMessageNo)
                 .build();

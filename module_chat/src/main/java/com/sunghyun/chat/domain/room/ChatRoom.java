@@ -61,12 +61,12 @@ public class ChatRoom {
 
         if(roomType.equals(ChatRoomType.GROUP)){
             // 그룹 채팅인 경우
-            if(chatParticipants.size() < 3){
-                // 2명이면 PRIVATE 채팅으로 변환 X
-                // 이거 변환을 어떻게 알리지? 도메인 계층에 로깅하는 건 별론데..
-                // + 그냥 정책을 바꾸자. GROUP + 3명 미만은 에러 뱉자
-                throw new InvalidParticipantCountException(ErrorCode.Z004); // 단체방은 3명 이상이어야 함 (정책에 따라 조절)
-            }
+//            if(chatParticipants.size() < 3){
+//                // 2명이면 PRIVATE 채팅으로 변환 X
+//                // 이거 변환을 어떻게 알리지? 도메인 계층에 로깅하는 건 별론데..
+//                // + 그냥 정책을 바꾸자. GROUP + 3명 미만은 에러 뱉자
+//                throw new InvalidParticipantCountException(ErrorCode.Z004); // 단체방은 3명 이상이어야 함 (정책에 따라 조절)
+//            }
         }
 
         if(roomType.equals(ChatRoomType.TEAM)){
@@ -109,35 +109,7 @@ public class ChatRoom {
         readedParticipant.readMessage(lastReadChatMessageNo);
     }
 
-//    // 참여자들 중 사용자 제외하고 나머지 참여자 뽑기
-//    public List<ChatParticipant> getParticipantsExcludeSender(Long senderMemberNo){
-//        //보낸 사람이 해당방 실제 참여자인지 나간 참여자 아닌지 확인
-//        boolean isSenderActive = this.chatParticipants.stream()
-//                .anyMatch(p -> p.getMemberNo().equals(senderMemberNo) && !p.isLeft());
-//
-//        if (!isSenderActive) {
-//            throw new NotFoundChatParticipantException(ErrorCode.Z001);
-//        }
-//
-//        // 보낸 사람 제외 + 나가지 않은 상대방 추출
-//        return this.getChatParticipants()
-//                .stream()
-//                .filter(chatParticipant -> !chatParticipant.isLeft()) // 안 나간 사람들에 한해서만
-//                .filter(chatParticipant -> !chatParticipant.getMemberNo().equals(senderMemberNo)) // 보낸 이 제외하고 나머지 사람들
-//                .toList();
-//    }
-
     public List<Long> getReceiverMemberNos(Long senderMemberNo) {
-        // 나를 제외한 회원번호 가져오기
-
-        //보낸 사람이 해당 방의 실제 참여자인지 나간 참여자 아닌지 확인
-//        boolean isSenderActive = this.chatParticipants.stream()
-//                .anyMatch(p -> p.getMemberNo().equals(senderMemberNo) && !p.isLeft());
-//
-//        if (!isSenderActive) {
-//            throw new NotFoundChatParticipantException(ErrorCode.Z001); // 💡 예: 참여자가 아니거나 퇴장한 경우
-//        }
-
         // 개인 채팅방은 상대방이 나가도 그대로 회원번호 및 이름 응답
         // 단체(팀,그룹) 채팅방은 상대방이 나가면 '알수없음'으로 응답
         if(this.chatRoomType == ChatRoomType.PRIVATE){
@@ -167,18 +139,6 @@ public class ChatRoom {
                 ;
     }
 
-
-//    public void enteredMember(Long targetMemberNo) {
-//        ChatParticipant targetChatParticipant = this.chatParticipants.stream()
-//                .filter(p->p.getMemberNo().equals(targetMemberNo))
-//                .findFirst()
-//                .orElseThrow(()->new NotFoundChatParticipantException(ErrorCode.Z001))
-//                ;
-//
-//        //채팅방 들어가기
-//        targetChatParticipant.enter();
-//    }
-
     public void leaveMember(Long targetMemberNo) {
         //채팅방 나가는 대상 회원
         ChatParticipant targetChatParticipant = this.chatParticipants.stream()
@@ -191,14 +151,12 @@ public class ChatRoom {
         targetChatParticipant.leave();
     }
 
-    public boolean isMemberLeft(Long memberNo) {
-        return this.chatParticipants
-                .stream()
-                .filter(p->p.getMemberNo().equals(memberNo))
+    public boolean isDisplayedTo(Long memberNo) {
+        return this.chatParticipants.stream()
+                .filter(p -> p.getMemberNo().equals(memberNo))
                 .findFirst()
-                .map(ChatParticipant::isLeft)
-                .orElse(true) // 참여자가 아예 없거나 찾을 수 없으면 나간 걸로 간주
-                ;
+                .map(ChatParticipant::isDisplayed) // 💡 해당 회원의 노출(isDisplayed) 상태를 그대로 반환
+                .orElse(false); // 💡 참여자가 아예 없거나 찾을 수 없으면 안 보여주는 것(false)이 안전함
     }
 
     public void inviteMember(List<Long> targetMemberNos,Long chatMessageNo) {
@@ -232,14 +190,10 @@ public class ChatRoom {
         // 그룹 채팅방
         // 첫 채팅 시작 또는 초대된 경우, 읽기 시작한 메시지번호 세팅
 
-        //첫 채팅시작인 경우
-        if (!hasMessage) {
-            initializeFirstMessageForParticipants(chatMessageNo);
-            return;
-        }
-
         if (this.chatRoomType == ChatRoomType.PRIVATE) {
             this.chatParticipants.forEach(participant -> {
+                participant.assignFirstViewableMessage(chatMessageNo);
+                participant.displayed();
                 // 누구든 나간 경우, 재입장시키기
                 // 근데 첫 채팅인데 상대방이 나간 경우는 없다.
                 if (participant.isLeft()) {
@@ -250,14 +204,14 @@ public class ChatRoom {
 
         else if (this.chatRoomType == ChatRoomType.GROUP) {
             // inviteMember에서 초대 시점 기준으로 최신 메시지 번호 세팅하므로 패스
+            this.chatParticipants.forEach(participant -> {
+                if (!participant.isLeft()) {
+                    participant.displayed();
+                }
+            });
         }
     }
 
-    private void initializeFirstMessageForParticipants(Long chatMessageNo) {
-        for (ChatParticipant participant : this.chatParticipants) {
-            participant.assignFirstViewableMessage(chatMessageNo);
-        }
-    }
 
     public boolean isPrivateRoom() {
         return this.chatRoomType == ChatRoomType.PRIVATE;
@@ -275,5 +229,11 @@ public class ChatRoom {
                 .findFirst()
                 .orElse(null)
                 ;
+    }
+
+    public void setInvitedMessageAllChatParticipant(Long chatMessageNo) {
+        for(ChatParticipant chatParticipant:this.chatParticipants){
+            chatParticipant.assignFirstViewableMessage(chatMessageNo);
+        }
     }
 }

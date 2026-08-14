@@ -1,6 +1,5 @@
 package com.sunghyun.chat.application.service;
 
-import com.sunghyun.chat.application.dto.req.ChatMessageSendReqDto;
 import com.sunghyun.chat.application.dto.req.ChatRoomCreateReqDto;
 import com.sunghyun.chat.application.dto.req.ChatRoomInviteReqDto;
 import com.sunghyun.chat.application.dto.res.*;
@@ -17,8 +16,6 @@ import com.sunghyun.chat.domain.room.repository.ChatRoomRepository;
 import com.sunghyun.web.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,7 +72,7 @@ public class ChatRoomService implements ChatRoomUseCase {
         // + 회원이 나간 채팅방 제외
         List<ChatRoom> activeChatRooms = chatRoomRepository.findChatRoomsByMemberNo(memberNo)
                 .stream()
-                .filter(chatRoom->!chatRoom.isMemberLeft(memberNo))
+                .filter(chatRoom -> chatRoom.isDisplayedTo(memberNo)) // 💡 노출 여부 필터 추가
                 .toList()
                 ;
 
@@ -152,17 +149,12 @@ public class ChatRoomService implements ChatRoomUseCase {
                 .toList();
     }
 
-
-
-
-
     @Override
     @Transactional
     public void leaveMember(Long chatRoomNo, Long leavedMemberNo) {
         // 채팅 도메인 조회
         ChatRoom selectedChatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
                 .orElseThrow(()->new NotFoundChatRoomException(ErrorCode.Z000));
-
 
         // 채팅방에서 회원 나가기
         selectedChatRoom.leaveMember(leavedMemberNo);  //isLeft, 0L
@@ -185,30 +177,41 @@ public class ChatRoomService implements ChatRoomUseCase {
         ChatRoom selectedChatRoom = chatRoomRepository.findChatRoomByChatRoomNo(chatRoomNo)
                 .orElseThrow(()->new NotFoundChatRoomException(ErrorCode.Z000));
 
-        // 개인방인 경우, 새롭게 그룹방 생성
+        // 개인방에서 초대한 경우, 항상 새로운 그룹방 생성
+        // 초대만 된 상태라 채팅목록에 노출되어선 안 됨
+        // 초대자만 해당 채팅방으로 ~님이 ~님을 초대했습니다 보여야 한다. message Save는 필요
         if(selectedChatRoom.isPrivateRoom()){
-            // 단체방 도메인 생성
+            // 단체방 도메인 생성 및 저장
             ChatRoom newChatRoom = ChatRoom.createChatRoom(ChatRoomType.GROUP,memberNo,reqDto.getTargetMemberNos());
             ChatRoom savedChatRoom = chatRoomRepository.save(newChatRoom);
 
-            // 새롭게 만들었으면 chatRoomNo를 응답해야 한다.
+            // 초대 메시지 저장 및 발행
+            ChatMessage invitedChatMessage = ChatMessage.createInviteMessage(savedChatRoom.getChatRoomNo(),memberNo,reqDto.getTargetMemberNos());
+            ChatMessage savedInvitedChatMessage = chatMessageRepository.save(invitedChatMessage);
+
+            // 첫 채팅 번호 저장
+            savedChatRoom.setInvitedMessageAllChatParticipant(savedInvitedChatMessage.getChatMessageNo());
+            chatRoomRepository.save(savedChatRoom);
+
             return new ChatRoomCreateResDto(savedChatRoom.getChatRoomNo());
         }
 
-        // 단체방인 경우, 초대
+        // 단체방에서 초대한 경우, 기존 단체방으로 초대
+        // 초대만 된 상태라 채팅목록에 노출되어선 안 됨
+        // 채팅방 전원에게 ~님이 ~님을 초대했습니다 보여야 한다. -> websocket 통신 필요(room경로로 메시지 발행)
         else if(selectedChatRoom.isGroupRoom()){
-            ChatMessage invitedChatMessage = ChatMessage.createInviteMessage(chatRoomNo,memberNo,selectedChatRoom.getReceiverMemberNos(memberNo));
+            // 채팅메시지 생성 및 저장
+            ChatMessage invitedChatMessage = ChatMessage.createInviteMessage(chatRoomNo,memberNo,reqDto.getTargetMemberNos());
             ChatMessage savedInvitedChatMessage = chatMessageRepository.save(invitedChatMessage);
 
             selectedChatRoom.inviteMember(reqDto.getTargetMemberNos(),savedInvitedChatMessage.getChatMessageNo());
             chatRoomRepository.save(selectedChatRoom);
 
+            // 채팅방에 들어와 있는 상대방들에게만 초대 메시지(~님이 ~을 초대했습니다.) 보여주기
             ChatMessageResDto result = ChatMessageResDto.fromDomain(savedInvitedChatMessage,selectedChatRoom.getReceiverMemberNos(memberNo));
             chatEventPublisherPort.publishInvitedChatRoom(new ChatEvent.ChatRoomInvited(chatRoomNo, result));
         }
 
         return new ChatRoomCreateResDto(selectedChatRoom.getChatRoomNo());
     }
-
-
 }
