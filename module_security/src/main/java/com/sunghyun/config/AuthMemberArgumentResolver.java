@@ -5,6 +5,7 @@ import com.sunghyun.dto.AuthMemberInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,18 @@ public class AuthMemberArgumentResolver implements HandlerMethodArgumentResolver
     @Override
     public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer, NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (AuthMemberInfo) authentication.getDetails();
+
+        // 인증된 유저라면
+        if(isAuthenticated(authentication)){
+            return (AuthMemberInfo) authentication.getDetails();
+        }
+
+        return null;
+    }
+
+    private boolean isAuthenticated(Authentication authentication) {
+        return authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
     }
 }

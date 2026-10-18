@@ -65,22 +65,40 @@ public class GlobalExceptionHandler {
      * @PathVariable 타입이 다른 경우
      *
      */
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ExceptionHandler({
+            MethodArgumentTypeMismatchException.class,
+            IllegalArgumentException.class,
+            IllegalStateException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public GlobalResponse handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException exception){
+    public GlobalResponse handleTypeMismatchAndArgumentException(Exception exception) {
+        log.warn("파라미터 바인딩 또는 타입 오류 발생: {}", exception.getMessage());
+
         List<DetailMessage> detailMessages = new ArrayList<>();
 
-        String fieldName = exception.getPropertyName();
-        String rejectedValue= exception.getValue()==null ? null : exception.getValue().toString();
-        detailMessages.add(
-                new DetailMessage(
-                        fieldName,
-                        rejectedValue,
-                        "올바르지 않은 필드가 인입되었습니다."
-                )
-        );
+        if (exception instanceof MethodArgumentTypeMismatchException typeMismatchException) {
+            String fieldName = typeMismatchException.getPropertyName();
+            String rejectedValue = typeMismatchException.getValue() == null ? null : typeMismatchException.getValue().toString();
 
-        return GlobalResponse.of(ErrorCode.F000,detailMessages);
+            detailMessages.add(
+                    new DetailMessage(
+                            fieldName,
+                            rejectedValue,
+                            "올바르지 않은 타입의 값이 전달되었습니다."
+                    )
+            );
+        } else {
+            // IllegalStateException, IllegalArgumentException 처리
+            detailMessages.add(
+                    new DetailMessage(
+                            null,
+                            null,
+                            "요청 파라미터 구조 또는 타입이 올바르지 않습니다."
+                    )
+            );
+        }
+
+        return GlobalResponse.of(ErrorCode.F000, detailMessages);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

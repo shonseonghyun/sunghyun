@@ -12,3 +12,4 @@ include 'module_notification'
 
 
 include 'module_chat'
+include 'module_team'

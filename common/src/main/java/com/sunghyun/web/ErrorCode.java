@@ -45,6 +45,36 @@ public enum ErrorCode {
     P04(HttpStatus.BAD_REQUEST, "모집 기간이 만료된 매치입니다"),
     P05(HttpStatus.BAD_REQUEST, "취소된 매치입니다."),
 
+    // 팀 관련 (T) ---
+    T000(HttpStatus.BAD_REQUEST, "이미 해당 팀에 가입 신청되어 승인 대기 중입니다"),
+    T001(HttpStatus.BAD_REQUEST,"이미 가입된 팀입니다." ),
+    T002(HttpStatus.NOT_FOUND,"존재하지 않는 팀입니다." ),
+    T003(HttpStatus.NOT_FOUND,"팀 가입 신청 내역이 존재하지 않습니다." ),
+    T004(HttpStatus.BAD_REQUEST,"팀 가입 신청 상태가 아닙니다." ),
+    T005(HttpStatus.BAD_REQUEST,"팀 가입 신청 당사자가 아닙니다." ),
+    T006(HttpStatus.BAD_REQUEST,"팀 내 회장만 수락/거절 가능합니다." ),
+    T007(HttpStatus.BAD_REQUEST,"이미 가입된 팀이 있습니다." ),
+    T008(HttpStatus.BAD_REQUEST,"이미 타팀 신청 대기 중인 가입 건이 존재합니다." ),
+    T009(HttpStatus.NOT_FOUND,"가입된 팀이 없습니다." ),
+
+    // 팀 일정 관련 ---
+    P001(HttpStatus.NOT_FOUND,"팀 일정이 존재하지 않습니다." ),
+    P002(HttpStatus.BAD_REQUEST,"투표 마감되었습니다." ),
+    P003(HttpStatus.BAD_REQUEST,"최대 참여 가능 인원을 초과했습니다." ),
+    P004(HttpStatus.BAD_REQUEST,"이미 처리된 투표 상태입니다" ),
+    P005(HttpStatus.NOT_FOUND,"설정된 장소가 당사 DB 내 존재하지 않습니다." ),
+
+    // --- 용병 관련 (G) ---
+    G000(HttpStatus.NOT_FOUND, "존재하지 않는 용병 모집 공고입니다."),
+    G001(HttpStatus.BAD_REQUEST, "마감되었거나 모집 중이 아닌 용병 공고입니다."),
+    G002(HttpStatus.BAD_REQUEST, "자신이 작성한 용병 공고에는 신청할 수 없습니다."),
+    G003(HttpStatus.BAD_REQUEST, "이미 참가 확정된 용병 공고입니다."),
+    G004(HttpStatus.NOT_FOUND, "해당 공고에서 모집하지 않는 포지션입니다."),
+    G005(HttpStatus.BAD_REQUEST, "해당 포지션의 모집 정원이 이미 초과되었습니다."),
+    G006(HttpStatus.BAD_REQUEST, "이미 해당 일정에 등록된 용병 모집 공고가 존재합니다."),
+    G007(HttpStatus.BAD_REQUEST, "해당 시간대에 이미 참석 일정이 존재합니다."),
+    G008(HttpStatus.BAD_REQUEST, "해당 시간대에 타 용병 신청 내역이 존재합니다."),
+
     // -HttpStatus.OK,-- 아웃박스 관련 (O) ---
     O000(HttpStatus.NOT_FOUND, "존재하지 않는 아웃박스입니다."),
 
@@ -73,7 +103,7 @@ public enum ErrorCode {
     // --- 외부 API 관련 ---
     E000(HttpStatus.INTERNAL_SERVER_ERROR, "외부 서비스 호출 중 오류가 발생했습니다."),
     E001(HttpStatus.NOT_FOUND, "찾을 수 없습니다."),
-    E002(HttpStatus.INTERNAL_SERVER_ERROR, "메일 전송 실패하였습니다."), //흠 얘는 5xx로 응답해야 하는데..
+    E002(HttpStatus.INTERNAL_SERVER_ERROR, "메일 전송 실패하였습니다.") //흠 얘는 5xx로 응답해야 하는데..
     ;
 
     private final HttpStatus httpStatus;

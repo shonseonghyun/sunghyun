@@ -109,5 +109,4 @@ public class ChatMessageService implements ChatMessageUseCase {
 
         return result;
     }
-
 }
