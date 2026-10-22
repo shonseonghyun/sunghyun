@@ -1,5 +1,9 @@
 package com.sunghyun.team.application.port;
 
+import com.sunghyun.event.team.TeamCreatedEvent;
+import com.sunghyun.schedule.domain.Location;
+import com.sunghyun.schedule.domain.exception.NotFoundLocationException;
+import com.sunghyun.schedule.domain.repository.LocationRepository;
 import com.sunghyun.team.application.port.in.TeamUseCase;
 import com.sunghyun.team.application.port.in.dto.TeamCreateReqDto;
 import com.sunghyun.team.application.port.out.dto.TeamCreateResDto;
@@ -10,6 +14,8 @@ import com.sunghyun.team.domain.model.Team;
 import com.sunghyun.team.domain.repository.TeamRepository;
 import com.sunghyun.web.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class TeamService implements TeamUseCase {
 
     private final TeamRepository teamRepository;
+    private final LocationRepository locationRepository;
+
+    private final KafkaTemplate<String,Object> kafkaTemplate;
+
+    @Value("${kafka.topic.team-created}")
+    private String teamCreatedTopic;
 
     @Override
     @Transactional
@@ -29,7 +41,7 @@ public class TeamService implements TeamUseCase {
                 reqDto.getLogoUrl(),
                 reqDto.getTeamDesc(),
                 reqDto.getActivityRegion(),
-                reqDto.getFrequentStadium(),
+                reqDto.getLocation(),
                 reqDto.getGenderComposition(),
                 reqDto.getMainAgeGroup(),
                 reqDto.getMonthlyFee()
@@ -38,7 +50,17 @@ public class TeamService implements TeamUseCase {
         // 2. 저장소(Repository)를 통한 저장
         Team savedTeam = teamRepository.save(team);
 
+        // 이 부분도 이벤트 발행으로 처리하면 좋겠다.
+        if(reqDto.getLocation() != null){
+            Location savedLocation = locationRepository.save(reqDto.getLocation());
+        }
+
         // 팀 채팅방 생성!!!!!!
+        kafkaTemplate.send(
+                teamCreatedTopic,
+                String.valueOf(savedTeam.getTeamNo()),
+                new TeamCreatedEvent(savedTeam.getTeamNo(),creatorMemberNo)
+        );
 
         // 3. Response DTO 반환
         return TeamCreateResDto.from(savedTeam);
@@ -69,7 +91,14 @@ public class TeamService implements TeamUseCase {
         // 게스트가 아니면서 해당팀인경우만 true 리턴
         boolean isMember = memberNo != null & selectedTeam.isMember(memberNo);
 
-        return TeamDetailInfoSelectResDto.from(selectedTeam,isMember);
+        // 자주 가는 구장 세팅된 경우
+        Location location = null;
+        if(selectedTeam.getLocationNo() != null){
+            location = locationRepository.findByLocationNo(selectedTeam.getLocationNo())
+                    .orElseThrow(()-> new NotFoundLocationException(ErrorCode.P005));
+        }
+
+        return TeamDetailInfoSelectResDto.from(selectedTeam,isMember,location);
     }
 
     @Override
@@ -81,7 +110,13 @@ public class TeamService implements TeamUseCase {
         // 게스트가 아니면서 해당팀인경우만 true 리턴
         boolean isMember = memberNo != null & selectedTeam.isMember(memberNo);
 
-        return TeamDetailInfoSelectResDto.from(selectedTeam,isMember);
+        Location location = null;
+        if(selectedTeam.getLocationNo() != null){
+            location = locationRepository.findByLocationNo(selectedTeam.getLocationNo())
+                    .orElseThrow(()-> new NotFoundLocationException(ErrorCode.P005));
+        }
+
+        return TeamDetailInfoSelectResDto.from(selectedTeam,isMember,location);
     }
 
     @Override

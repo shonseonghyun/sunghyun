@@ -1,13 +1,12 @@
 package com.sunghyun.team.domain.model;
 
+import com.sunghyun.schedule.domain.Location;
 import com.sunghyun.team.domain.enums.AgeGroup;
 import com.sunghyun.team.domain.enums.GenderComposition;
 import com.sunghyun.team.domain.enums.TeamMemberRole;
 import com.sunghyun.team.domain.enums.TeamType;
 import com.sunghyun.team.domain.exceptions.TeamJoinRequestException;
 import com.sunghyun.web.ErrorCode;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,13 +27,13 @@ public class Team {
     private String logoUrl;                      // 로고(선택)
     private String teamDesc;                     // 팀 소개(선택)
     private String activityRegion;               // 활동 지역
-    private String frequentStadium;              // 자주 구장 (선택)
+    private Long locationNo;                     // 자주 가는 구장 pk
     private GenderComposition genderComposition; // 성별 구성
     private AgeGroup mainAgeGroup;               // 주 연령대
     private MonthlyFee monthlyFee;               // 월 회비 (선택 - null 가능)
     private List<TeamMember> teamMemberList;
 
-    public static Team createTeam(Long creatorMemberNo, String teamName, TeamType teamType, String logoUrl, String teamDesc, String activityRegion, String frequentStadium, GenderComposition genderComposition, AgeGroup mainAgeGroup,MonthlyFee monthlyFee) {
+    public static Team createTeam(Long creatorMemberNo, String teamName, TeamType teamType, String logoUrl, String teamDesc, String activityRegion, Location location, GenderComposition genderComposition, AgeGroup mainAgeGroup, MonthlyFee monthlyFee) {
         // 생성한 사람은 리더
         List<TeamMember> newTeamMemberList = new ArrayList<>();
         TeamMember newLeader = TeamMember.createLeader(creatorMemberNo);
@@ -46,7 +45,7 @@ public class Team {
                 .teamType(teamType)
                 .logoUrl(logoUrl)
                 .activityRegion(activityRegion)
-                .frequentStadium(frequentStadium)
+                .locationNo(location == null ? null : location.getLocationNo())
                 .genderComposition(genderComposition)
                 .mainAgeGroup(mainAgeGroup)
                 .teamDesc(teamDesc)

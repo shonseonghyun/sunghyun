@@ -1,6 +1,8 @@
 package com.sunghyun.team.application.port.out.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sunghyun.schedule.application.dto.res.LocationResDto;
+import com.sunghyun.schedule.domain.Location;
 import com.sunghyun.team.domain.enums.AgeGroup;
 import com.sunghyun.team.domain.enums.GenderComposition;
 import com.sunghyun.team.domain.enums.TeamType;
@@ -11,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Setter
 @Getter
 @Builder
 @AllArgsConstructor
@@ -24,7 +27,7 @@ public class TeamDetailInfoSelectResDto {
     private String logoUrl;
     private String teamDesc;
     private String activityRegion;
-    private String frequentStadium;
+    private LocationResDto location;
     private GenderComposition genderComposition;
     private AgeGroup mainAgeGroup;
 
@@ -37,7 +40,7 @@ public class TeamDetailInfoSelectResDto {
     /**
      * Team 도메인 객체로부터 DTO 생성
      */
-    public static TeamDetailInfoSelectResDto from(Team team,boolean isTeamMember) {
+    public static TeamDetailInfoSelectResDto from(Team team,boolean isTeamMember,Location location) {
         MonthlyFeeResDto feeDto = null;
         if (team.getMonthlyFee() != null) {
             feeDto = MonthlyFeeResDto.builder()
@@ -51,6 +54,8 @@ public class TeamDetailInfoSelectResDto {
                         .map(TeamMemberResDto::from)
                         .collect(Collectors.toList()) : Collections.emptyList();
 
+        LocationResDto locationResDto = location == null ? null : LocationResDto.from(location);
+
         return TeamDetailInfoSelectResDto.builder()
                 .teamNo(team.getTeamNo())
                 .creatorMemberNo(team.getCreatorMemberNo())
@@ -59,7 +64,7 @@ public class TeamDetailInfoSelectResDto {
                 .logoUrl(team.getLogoUrl())
                 .teamDesc(team.getTeamDesc())
                 .activityRegion(team.getActivityRegion())
-                .frequentStadium(team.getFrequentStadium())
+                .location(locationResDto)
                 .genderComposition(team.getGenderComposition())
                 .mainAgeGroup(team.getMainAgeGroup())
                 .monthlyFee(feeDto)

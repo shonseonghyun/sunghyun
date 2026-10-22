@@ -49,8 +49,8 @@ public class TeamEntity {
     @Column(name = "activity_region")
     private String activityRegion;
 
-    @Column(name = "frequent_stadium", length = 100)
-    private String frequentStadium;
+    @Column(name = "locationNo")
+    private Long locationNo;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender_composition")
@@ -87,7 +87,7 @@ public class TeamEntity {
                 .logoUrl(this.logoUrl)
                 .teamDesc(this.teamDesc)
                 .activityRegion(this.activityRegion)
-                .frequentStadium(this.frequentStadium)
+                .locationNo(this.locationNo)
                 .genderComposition(this.genderComposition)
                 .mainAgeGroup(this.mainAgeGroup)
                 .monthlyFee(fee)
@@ -117,7 +117,7 @@ public class TeamEntity {
                 .logoUrl(team.getLogoUrl())
                 .teamDesc(team.getTeamDesc())
                 .activityRegion(team.getActivityRegion())
-                .frequentStadium(team.getFrequentStadium())
+                .locationNo(team.getLocationNo())
                 .genderComposition(team.getGenderComposition())
                 .mainAgeGroup(team.getMainAgeGroup())
                 .monthlyFee(feeEmbeddable)
