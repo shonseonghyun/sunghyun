@@ -13,9 +13,11 @@ import com.sunghyun.chat.domain.message.repository.ChatMessageRepository;
 import com.sunghyun.chat.domain.room.ChatRoom;
 import com.sunghyun.chat.domain.room.enums.ChatRoomType;
 import com.sunghyun.chat.domain.room.repository.ChatRoomRepository;
+import com.sunghyun.event.team.TeamCreatedEvent;
 import com.sunghyun.web.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -213,5 +215,14 @@ public class ChatRoomService implements ChatRoomUseCase {
         }
 
         return new ChatRoomCreateResDto(selectedChatRoom.getChatRoomNo());
+    }
+
+    @KafkaListener(topics = "${kafka.topic.team-created}",groupId = "${spring.kafka.consumer.group-id}")
+    public void handleTeamCreated(TeamCreatedEvent teamCreatedEvent){
+        log.info("팀 생성 이벤트 발생하여 그룹 채팅방 생성 시작");
+
+        final ChatRoomType chatRoomType = ChatRoomType.TEAM;
+
+
     }
 }

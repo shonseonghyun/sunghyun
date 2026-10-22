@@ -11,6 +11,10 @@ dependencies {
     //rabbitMQ
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
 
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+
+
     /* Reactor Netty */
     implementation "org.springframework.boot:spring-boot-starter-reactor-netty" // RabbitMQ에서 브로커 연결 및 통신 설정을 위해 기본으로 사용
 
