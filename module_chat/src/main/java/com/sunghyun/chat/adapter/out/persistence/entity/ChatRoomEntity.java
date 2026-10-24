@@ -29,6 +29,9 @@ public class ChatRoomEntity {
     @JoinColumn(name = "chat_room_no",updatable = false,nullable = false)
     private List<ChatParticipantEntity> chatParticipants;
 
+    @Column(nullable = true)
+    private Long teamNo;
+
     @Column
     private String createdDt;
 
@@ -50,6 +53,7 @@ public class ChatRoomEntity {
                 .chatRoomNo(domain.getChatRoomNo())
                 .chatRoomType(domain.getChatRoomType())
                 .chatParticipants(participantEntities)
+                .teamNo(domain.getTeamNo())
                 .createdDt(domain.getCreatedDt())
                 .createdTm(domain.getCreatedTm())
                 .build();
@@ -60,6 +64,7 @@ public class ChatRoomEntity {
         return ChatRoom.builder()
                 .chatRoomNo(this.chatRoomNo)
                 .chatRoomType(this.chatRoomType)
+                .teamNo(teamNo)
                 .chatParticipants(
                         this.chatParticipants == null ? null :
                                 this.chatParticipants.stream()

@@ -6,6 +6,7 @@ import com.sunghyun.schedule.domain.exception.NotFoundLocationException;
 import com.sunghyun.schedule.domain.repository.LocationRepository;
 import com.sunghyun.team.application.port.in.TeamUseCase;
 import com.sunghyun.team.application.port.in.dto.TeamCreateReqDto;
+import com.sunghyun.team.application.port.out.TeamEventPublisher;
 import com.sunghyun.team.application.port.out.dto.TeamCreateResDto;
 import com.sunghyun.team.application.port.out.dto.TeamDetailInfoSelectResDto;
 import com.sunghyun.team.application.port.out.dto.TeamSimpleInfoSelectResDto;
@@ -14,8 +15,6 @@ import com.sunghyun.team.domain.model.Team;
 import com.sunghyun.team.domain.repository.TeamRepository;
 import com.sunghyun.web.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,11 +24,7 @@ public class TeamService implements TeamUseCase {
 
     private final TeamRepository teamRepository;
     private final LocationRepository locationRepository;
-
-    private final KafkaTemplate<String,Object> kafkaTemplate;
-
-    @Value("${kafka.topic.team-created}")
-    private String teamCreatedTopic;
+    private final TeamEventPublisher teamEventPublisher;
 
     @Override
     @Transactional
@@ -56,11 +51,7 @@ public class TeamService implements TeamUseCase {
         }
 
         // 팀 채팅방 생성!!!!!!
-        kafkaTemplate.send(
-                teamCreatedTopic,
-                String.valueOf(savedTeam.getTeamNo()),
-                new TeamCreatedEvent(savedTeam.getTeamNo(),creatorMemberNo)
-        );
+        teamEventPublisher.publishTeamCreated(new TeamCreatedEvent(savedTeam.getTeamNo(),creatorMemberNo));
 
         // 3. Response DTO 반환
         return TeamCreateResDto.from(savedTeam);

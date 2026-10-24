@@ -12,4 +12,5 @@ public interface ChatRoomUseCase {
     List<ChatRoomResDto> getMyChatRooms(Long memberNo);
     void leaveMember(Long chatRoomNo, Long memberNo);
     ChatRoomCreateResDto inviteMember(Long chatRoomNo, Long memberNo, ChatRoomInviteReqDto reqDto);
+    void createTeamChatRoom(Long teamNo,Long creatorMemberNo);
 }

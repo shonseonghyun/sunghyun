@@ -13,11 +13,9 @@ import com.sunghyun.chat.domain.message.repository.ChatMessageRepository;
 import com.sunghyun.chat.domain.room.ChatRoom;
 import com.sunghyun.chat.domain.room.enums.ChatRoomType;
 import com.sunghyun.chat.domain.room.repository.ChatRoomRepository;
-import com.sunghyun.event.team.TeamCreatedEvent;
 import com.sunghyun.web.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -184,7 +182,7 @@ public class ChatRoomService implements ChatRoomUseCase {
         // 초대자만 해당 채팅방으로 ~님이 ~님을 초대했습니다 보여야 한다. message Save는 필요
         if(selectedChatRoom.isPrivateRoom()){
             // 단체방 도메인 생성 및 저장
-            ChatRoom newChatRoom = ChatRoom.createChatRoom(ChatRoomType.GROUP,memberNo,reqDto.getTargetMemberNos());
+            ChatRoom newChatRoom = ChatRoom.createGroupChatRoom(memberNo,reqDto.getTargetMemberNos());
             ChatRoom savedChatRoom = chatRoomRepository.save(newChatRoom);
 
             // 초대 메시지 저장 및 발행
@@ -217,12 +215,10 @@ public class ChatRoomService implements ChatRoomUseCase {
         return new ChatRoomCreateResDto(selectedChatRoom.getChatRoomNo());
     }
 
-    @KafkaListener(topics = "${kafka.topic.team-created}",groupId = "${spring.kafka.consumer.group-id}")
-    public void handleTeamCreated(TeamCreatedEvent teamCreatedEvent){
-        log.info("팀 생성 이벤트 발생하여 그룹 채팅방 생성 시작");
-
-        final ChatRoomType chatRoomType = ChatRoomType.TEAM;
-
-
+    @Override
+    @Transactional
+    public void createTeamChatRoom(Long teamNo, Long creatorMemberNo) {
+        ChatRoom newTeamChatRoom = ChatRoom.createTeamChatRoom(teamNo,creatorMemberNo);
+        ChatRoom savedTeamChatRoom = chatRoomRepository.save(newTeamChatRoom);
     }
 }

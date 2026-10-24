@@ -20,6 +20,8 @@ public class ChatRoom {
 
     private ChatRoomType chatRoomType;
 
+    private Long teamNo;
+
     private List<ChatParticipant> chatParticipants;
 
     private String createdDt;
@@ -27,9 +29,7 @@ public class ChatRoom {
     private String createdTm;
 
     public static ChatRoom createPrivateChatRoom(Long memberNo, Long targetMemberNo) {
-        List<ChatParticipant> chatParticipants = new ArrayList<>();
-        chatParticipants.add(ChatParticipant.createChatParticipant(memberNo));
-        chatParticipants.add(ChatParticipant.createChatParticipant(targetMemberNo));
+        List<ChatParticipant> chatParticipants = createChatParticipants(memberNo,List.of(targetMemberNo));
 
         return ChatRoom.builder()
                 .chatRoomType(ChatRoomType.PRIVATE)
@@ -40,41 +40,29 @@ public class ChatRoom {
                 ;
     }
 
-    public static ChatRoom createChatRoom(ChatRoomType roomType, Long memberNo, List<Long> targetMemberNos) {
-        // ChatParticipant List로 만드는 로직 도메인 메소드로 빼야하나?
-        // + 뺐다.
-        // 참여자 목록 생성 위임
-        List<ChatParticipant> chatParticipants = createParticipants(memberNo, targetMemberNos);
+    public static ChatRoom createGroupChatRoom(Long memberNo, List<Long> targetMemberNos) {
+        List<ChatParticipant> chatParticipants = createChatParticipants(memberNo, targetMemberNos);
 
         // 검증
         if(chatParticipants.size()<2){
             throw new InvalidParticipantCountException(ErrorCode.Z003);
         }
 
-        if(roomType.equals(ChatRoomType.PRIVATE)){
-            // 개인 채팅인 경우
-            if(chatParticipants.size() != 2){
-                // 2명이 아닌 경우
-                throw new InvalidParticipantCountException(ErrorCode.Z002);
-            }
-        }
+        return ChatRoom.builder()
+                .chatRoomType(ChatRoomType.GROUP)
+                .chatParticipants(chatParticipants)
+                .createdDt(ApiUtils.getCurrentDt())
+                .createdTm(ApiUtils.getCurrentTm())
+                .build()
+                ;
+    }
 
-        if(roomType.equals(ChatRoomType.GROUP)){
-            // 그룹 채팅인 경우
-//            if(chatParticipants.size() < 3){
-//                // 2명이면 PRIVATE 채팅으로 변환 X
-//                // 이거 변환을 어떻게 알리지? 도메인 계층에 로깅하는 건 별론데..
-//                // + 그냥 정책을 바꾸자. GROUP + 3명 미만은 에러 뱉자
-//                throw new InvalidParticipantCountException(ErrorCode.Z004); // 단체방은 3명 이상이어야 함 (정책에 따라 조절)
-//            }
-        }
-
-        if(roomType.equals(ChatRoomType.TEAM)){
-            // 팀 채팅인 경우
-        }
+    public static ChatRoom createTeamChatRoom(Long teamNo, Long creatorMemberNo) {
+        List<ChatParticipant> chatParticipants = createTeamChatParticipants(creatorMemberNo);
 
         return ChatRoom.builder()
-                .chatRoomType(roomType)
+                .chatRoomType(ChatRoomType.TEAM)
+                .teamNo(teamNo)
                 .chatParticipants(chatParticipants)
                 .createdDt(ApiUtils.getCurrentDt())
                 .createdTm(ApiUtils.getCurrentTm())
@@ -83,7 +71,7 @@ public class ChatRoom {
     }
 
     // 참여자 리스트를 조립하는 책임을 도메인 내부로 격리
-    private static List<ChatParticipant> createParticipants(Long creatorMemberNo, List<Long> targetMemberNos) {
+    private static List<ChatParticipant> createChatParticipants(Long creatorMemberNo, List<Long> targetMemberNos) {
         List<ChatParticipant> participants = new ArrayList<>();
 
         // 생성자(나) 추가
@@ -95,6 +83,15 @@ public class ChatRoom {
                     participants.add(ChatParticipant.createChatParticipant(targetMemberNo))
             );
         }
+
+        return participants;
+    }
+
+    private static List<ChatParticipant> createTeamChatParticipants(Long creatorMemberNo) {
+        List<ChatParticipant> participants = new ArrayList<>();
+
+        // 팀 생성자는 처음부터 화면에 노출되어야 하므로 팀 전용 팩토리 호출
+        participants.add(ChatParticipant.createTeamChatParticipant(creatorMemberNo));
 
         return participants;
     }

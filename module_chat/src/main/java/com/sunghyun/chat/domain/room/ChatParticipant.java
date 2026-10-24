@@ -39,6 +39,17 @@ public class ChatParticipant {
                 .firstViewableChatMessageNo(chatMessageNo) //초대된 시점부터 볼 수 있음
                 .build();
     }
+
+    public static ChatParticipant createTeamChatParticipant(Long memberNo){
+        return ChatParticipant.builder()
+                .memberNo(memberNo)
+                .isLeft(false)
+                .isDisplayed(true) //생성 직후 노출 처리
+                .lastReadChatMessageNo(0L)
+                .firstViewableChatMessageNo(0L)
+                .build();
+    }
+
     public void readMessage(Long lastReadChatMessageNo) {
         if (lastReadChatMessageNo == null) return;
 
