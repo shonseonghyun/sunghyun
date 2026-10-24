@@ -3,6 +3,8 @@ package com.sunghyun.chat.domain.room;
 import com.sunghyun.chat.domain.exception.InvalidParticipantCountException;
 import com.sunghyun.chat.domain.exception.NotFoundChatParticipantException;
 import com.sunghyun.chat.domain.room.enums.ChatRoomType;
+import com.sunghyun.chat.domain.room.policy.ChatRoomPolicy;
+import com.sunghyun.chat.domain.room.policy.ChatRoomPolicyFactory;
 import com.sunghyun.utils.ApiUtils;
 import com.sunghyun.web.ErrorCode;
 import lombok.AllArgsConstructor;
@@ -109,19 +111,22 @@ public class ChatRoom {
     public List<Long> getReceiverMemberNos(Long senderMemberNo) {
         // 개인 채팅방은 상대방이 나가도 그대로 회원번호 및 이름 응답
         // 단체(팀,그룹) 채팅방은 상대방이 나가면 '알수없음'으로 응답
-        if(this.chatRoomType == ChatRoomType.PRIVATE){
-            return this.chatParticipants.stream()
-                    .map(ChatParticipant::getMemberNo)
-                    .toList();
-        }
+//        if(this.chatRoomType == ChatRoomType.PRIVATE){
+//            return this.chatParticipants.stream()
+//                    .map(ChatParticipant::getMemberNo)
+//                    .toList();
+//        }
+//
+//        else {
+//            return this.chatParticipants.stream()
+//                    .filter(p -> !p.isLeft())
+//                    .filter(p -> !p.getMemberNo().equals(senderMemberNo))
+//                    .map(ChatParticipant::getMemberNo)
+//                    .toList();
+//        }
 
-        else {
-            return this.chatParticipants.stream()
-                    .filter(p -> !p.isLeft())
-                    .filter(p -> !p.getMemberNo().equals(senderMemberNo))
-                    .map(ChatParticipant::getMemberNo)
-                    .toList();
-        }
+        ChatRoomPolicy policy = ChatRoomPolicyFactory.getPolicy(this.chatRoomType);
+        return policy.getReceiverMemberNos(this.chatParticipants,senderMemberNo);
 
     }
 
